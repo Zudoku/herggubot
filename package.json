@@ -1,8 +1,18 @@
 {
-  "name": "TessuStats",
-  "dependencies": {
-    "express": "3.x",
-    "node-teamspeak": "1.0.10",
-    "sqlite3": "2.2.0"
-  }
+  	"name": "HerGGuBot",
+	"version": "0.1.0",
+	"description": "",
+  	"author": "name <email>",
+  	"contributors": [{
+  		"name": "Rivenation",
+  		"email": "rivenation@gmail.com"
+	},{
+  		"name": "Arnold",
+  		"email": "arttu.siren@gmail.com"
+	}],
+  	"dependencies": {
+    	"express": "3.x",
+    	"node-teamspeak": "1.0.10",
+    	"sqlite3": "2.2.0"
+  	}
 }
