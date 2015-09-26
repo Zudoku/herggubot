@@ -38,10 +38,8 @@ module.exports = {
 		this.__sendCommand("clientlist", {}, function (err, res) {
 			if (err && typeof callback == "function")
 				return callback(err);
-			var targetClients = [];
-			res.forEach(function (client) {
-				if (client.cid == channelId)
-					targetClients.push(client);
+			var targetClients = res.filter(function (client) {
+				return client.cid == channelId
 			});
 			callback(null, targetClients);
 		});
