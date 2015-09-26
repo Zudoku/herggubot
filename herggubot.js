@@ -111,10 +111,10 @@ module.exports = {
             }
         });
     },
-    addActionLog : function(actionString) {
+    logAction : function(actionString) {
         database.run("INSERT INTO actionlog (text,date) VALUES (?,?)",actionString,new Date());
     },
-    addServerChatLog : function(clientId,text,sender) {
+    logServerChat : function(clientId,text,sender) {
         ts3api.getClientById(clientId,function(error,data){
             if(error){
                 console.log("Failed to check databaseid for client " + clientId + " Error: " + util.ispect(error));
@@ -124,7 +124,7 @@ module.exports = {
             }
         });
     },
-    addPrivateChatLog : function(clientId,text,sender) {
+    logPrivateChat : function(clientId,text,sender) {
         ts3api.getClientById(clientId,function(error,data){
             if(error){
                 console.log("Failed to check databaseid for client " + clientId + " Error: " + util.ispect(error));
