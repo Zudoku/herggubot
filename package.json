@@ -17,5 +17,4 @@
     "node-teamspeak": "1.0.10",
     "sqlite3": "2.2.0",
     "async": "~1.4.2"
-  }
 }
