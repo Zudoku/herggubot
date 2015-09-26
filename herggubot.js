@@ -41,9 +41,9 @@ text TEXT,
 */
 
 module.exports = {
-    launch : function(){
+    launch : function(callback){
         ts3api.initialize(config,function(){
-
+            callback();
         });
     },
     resetDatabase : function(){
@@ -131,6 +131,23 @@ module.exports = {
                 database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,-1,new Date());
             }else{
                 database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,data.client_database_id,new Date());
+            }
+        });
+    },
+    checkIfSpamming : function(clientid){
+        //database.all("SELECT ")
+    },
+    monitorChat : function(){
+        ts3api.registerListener("textmessage",function(data){
+            console.log(util.inspect(data));
+            switch(data.targetmode){
+                case 3: //Server chat
+                    logServerChat(data.invokerid,data.msg,data.invokername);
+                    checkIfSpamming(data.invokerid);
+                break;
+                case 1: //Private chat
+                    logPrivateChat(data.invokerid,data.msg,data.invokername);
+                break;
             }
         });
     }
