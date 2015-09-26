@@ -2,7 +2,7 @@ var TeamSpeakClient = require("node-teamspeak");
 var async = require("async");
 
 module.exports = {
-	lastRequestTime,
+	lastRequestTime: null,
 	initialize: function (config, callback) {
 		this.QUERY_TIME_LIMIT = config.QUERY_TIME_LIMIT;
 		this.__client = new TeamSpeakClient(config.TS_IP);
@@ -36,7 +36,7 @@ module.exports = {
 				if (typeof callback == "function")
 					return callback(err);
 			});
-		});
+		}.bind(this));
 	},
 	__registerInitialEvents: function (callback) {
 		var events = [
@@ -76,16 +76,13 @@ module.exports = {
 		});
 	},
 	__sendCommand: function (command, arguments, callback) {
-		if (!this.lastRequestTime || (new Date() - this.lastRequestTime) / 1000 > this.QUERY_TIME_LIMIT) {
-			this.__client.send(command, arguments, function(err, response, rawResponse) {
-			    this.lastRequestTime = new Date();
-			    if (err)
-			    	console.log("Error while sending command: " + command + " with arguments: " + JSON.stringify(arguments) + " Error: " + err);
-		        if (typeof callback == "function")
-		        	return callback(err, response);
-			}.bind(this));
-		} else {
-			setTimeout(this.__sendCommand(command, arguments, callback), new Date() - this.lastRequestTime);
-		}
+		console.log("SEND: " + command + " " + JSON.stringify(arguments));
+		this.__client.send(command, arguments, function(err, response, rawResponse) {
+		    this.lastRequestTime = new Date();
+		    if (err)
+		    	console.log("Error while sending command: " + command + " Error: " + JSON.stringify(err));
+	        if (typeof callback == "function")
+	        	return callback(err, response);
+		}.bind(this));
 	}
 };

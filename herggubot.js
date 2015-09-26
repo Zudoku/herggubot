@@ -1,5 +1,10 @@
 var config = require('./config');
+var ts3api = require('./ts3api');
 
+ts3api.initialize(config, function () {
+	console.log("done")
+});
+/*
 
 var TeamSpeakClient = require("node-teamspeak"),
     util = require("util");
@@ -158,4 +163,4 @@ module.exports = {
     activate : function(){
        operate();
     }
-}
+}*/
