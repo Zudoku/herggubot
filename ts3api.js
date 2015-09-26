@@ -12,11 +12,11 @@ module.exports = {
     		this.setNickname(config.NICKNAME, function (err) {
     			if (err && typeof callback == "function")
     				return callback(err);
-    		});
-    		this.__registerInitialEvents(function (err) {
-    			if (err && typeof callback == "function")
-    				return callback(err);
-    		});
+    			this.__registerInitialEvents(function (err) {
+    				if (typeof callback == "function")
+    					return callback(err);
+    			});
+    		}.bind(this));
     	}.bind(this));
 	},
 	setNickname: function (nickname, callback) {
