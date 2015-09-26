@@ -1,3 +1,3 @@
 var herggubot = require('./herggubot');
 
-herggubot.activate();
+herggubot.resetDatabase();

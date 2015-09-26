@@ -1,9 +1,142 @@
 var config = require('./config');
 var ts3api = require('./ts3api');
+var sqlite3 = require('sqlite3').verbose();
+var database = new sqlite3.Database(config.DATABASE_PATH);
+var util = require("util");
+/*
 
-ts3api.initialize(config, function () {
-	console.log("done")
-});
+DROP TABLE ignorelist;
+DROP TABLE serverchatlog;
+DROP TABLE privatechatlog;
+DROP TABLE actionlog;
+
+CREATE TABLE ignorelist
+(
+date datetime,
+databaseid INTEGER
+);
+
+CREATE TABLE serverchatlog 
+(
+date datetime,
+text TEXT,
+sender TEXT,
+databaseid INTEGER
+);
+
+CREATE TABLE privatechatlog 
+(
+date datetime,
+text TEXT,
+sender TEXT,
+databaseid INTEGER
+);
+
+CREATE TABLE actionlog 
+(
+date datetime,
+text TEXT,
+);
+
+*/
+
+module.exports = {
+    launch : function(){
+        ts3api.initialize(config,function(){
+
+        });
+    },
+    resetDatabase : function(){
+        var sqlString = "";
+
+        sqlString += "DROP TABLE ignorelist;";
+        sqlString += "DROP TABLE serverchatlog;";
+        sqlString += "DROP TABLE privatechatlog;";
+        sqlString += "DROP TABLE actionlog;";
+
+        sqlString += "CREATE TABLE ignorelist";
+        sqlString += "(";
+        sqlString += "date datetime,";
+        sqlString += "databaseid INTEGER";
+        sqlString += ");";
+
+        sqlString += "CREATE TABLE serverchatlog";
+        sqlString += "(";
+        sqlString += "date datetime,";
+        sqlString += "text TEXT,";
+        sqlString += "sender TEXT,";
+        sqlString += "databaseid INTEGER";
+        sqlString += ");";
+
+        sqlString += "CREATE TABLE privatechatlog";
+        sqlString += "(";
+        sqlString += "date datetime,";
+        sqlString += "text TEXT,";
+        sqlString += "sender TEXT,";
+        sqlString += "databaseid INTEGER";
+        sqlString += ");";
+
+        sqlString += "CREATE TABLE actionlog";
+        sqlString += "(";
+        sqlString += "date datetime,";
+        sqlString += "text TEXT";
+        sqlString += ");";
+
+        database.run(sqlString);
+    },
+    addtoIgnoreList : function(clientId){
+        ts3api.getClientById(clientId,function(error,data){
+            if(error){
+                console.log("Failed to add client " + clientId + "to ignorelist! Error: " + util.ispect(error));
+            }else{
+                database.run("INSERT INTO ignorelist (databaseid,date) values (?,?);", data.client_database_id, new Date());
+                addActionLog(data.client_database_id + " Added to ignore list");
+            }
+        });
+        
+    },
+    isOnIgnoreList : function(clientId){
+        ts3api.getClientById(clientId,function(error,data){
+            if(error){
+                console.log("Failed to check if client " + clientId + " is on ignorelist! Error: " + util.ispect(error));
+            }else{
+                database.all("SELECT * FROM ignorelist WHERE databaseid = ?;",data.client_database_id,function(err, rows) {
+                    if(rows.length == 0){
+                        return false;
+                    }else{
+                        return true;
+                    }
+                });
+
+            }
+        });
+    },
+    addActionLog : function(actionString) {
+        database.run("INSERT INTO actionlog (text,date) VALUES (?,?)",actionString,new Date());
+    },
+    addServerChatLog : function(clientId,text,sender) {
+        ts3api.getClientById(clientId,function(error,data){
+            if(error){
+                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.ispect(error));
+                database.run("INSERT INTO serverchatlog (text,sender,databaseid,date) VALUES (?,?)",text,sender,-1,new Date());
+            }else{
+                database.run("INSERT INTO serverchatlog (text,sender,databaseid,date) VALUES (?,?)",text,sender,data.client_database_id,new Date());
+            }
+        });
+    },
+    addPrivateChatLog : function(clientId,text,sender) {
+        ts3api.getClientById(clientId,function(error,data){
+            if(error){
+                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.ispect(error));
+                database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?)",text,sender,-1,new Date());
+            }else{
+                database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?)",text,sender,data.client_database_id,new Date());
+            }
+        });
+    }
+
+};
+
 /*
 
 var TeamSpeakClient = require("node-teamspeak"),
@@ -11,7 +144,7 @@ var TeamSpeakClient = require("node-teamspeak"),
 
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(config.DATABASE_PATH);
-var cl = new TeamSpeakClient(config.TS_IP);
+var cl = new TeamSpeakClient(config.TS_IP);*
 
 //config.TIME_BETWEEN_QUERIES
 
