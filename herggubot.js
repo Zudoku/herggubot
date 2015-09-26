@@ -20,15 +20,13 @@ var sendCommand = function(command, args, cb) {
         }else{
             console.log("NO CALLBACK TO CALL")
         }
-
     });
-
 };
 var messageQueue = [];
 var welcomeSent = [];
 var strawpollLink = "[url=http://strawpoll.me/5398304]http://strawpoll.me/5398304[/url]";
 
-var responseQueue = function(){
+var responseQueue = function() {
     if(messageQueue.length >= 1){
         var message = messageQueue.shift();
         var results = [];
@@ -44,13 +42,9 @@ var responseQueue = function(){
                 }
             });
         });
-        
-        
-
     }else{
         setTimeout(responseQueue,1000);
     }
-    
 };
 
 var getResponse = function(toID,sender, message){
@@ -88,7 +82,6 @@ var afterRegister = function(){
             }
             console.log("<- " + data.invokername + " : " + data.msg + "\n");
         }
-        
     });
     cl.on("clientmoved",function(data){
 
@@ -103,10 +96,6 @@ var afterRegister = function(){
                 }
             },2000);
         }
-        
-        
-        
-        //console.log(util.inspect(data));
     });
     setTimeout(responseQueue,1000);
 };
@@ -116,10 +105,8 @@ var registerForOneEvent = function(callback,index){
         cl.send("servernotifyregister",{event: "channel", id: 1}, function(err, response, rawResponse){
             callback();
         });
-        
         return;
     }
-    
     cl.send("servernotifyregister",{event: eventTypes[index]}, function(err, response, rawResponse){
     
     });
@@ -166,8 +153,6 @@ var getHelpMessage = function(){
     return message;
 
 };
-
-
 
 module.exports = {
     activate : function(){
