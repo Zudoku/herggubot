@@ -118,9 +118,9 @@ module.exports = {
         ts3api.getClientById(clientId,function(error,data){
             if(error){
                 console.log("Failed to check databaseid for client " + clientId + " Error: " + util.ispect(error));
-                database.run("INSERT INTO serverchatlog (text,sender,databaseid,date) VALUES (?,?)",text,sender,-1,new Date());
+                database.run("INSERT INTO serverchatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,-1,new Date());
             }else{
-                database.run("INSERT INTO serverchatlog (text,sender,databaseid,date) VALUES (?,?)",text,sender,data.client_database_id,new Date());
+                database.run("INSERT INTO serverchatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,data.client_database_id,new Date());
             }
         });
     },
@@ -128,9 +128,9 @@ module.exports = {
         ts3api.getClientById(clientId,function(error,data){
             if(error){
                 console.log("Failed to check databaseid for client " + clientId + " Error: " + util.ispect(error));
-                database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?)",text,sender,-1,new Date());
+                database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,-1,new Date());
             }else{
-                database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?)",text,sender,data.client_database_id,new Date());
+                database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,data.client_database_id,new Date());
             }
         });
     }
