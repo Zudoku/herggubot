@@ -4,7 +4,7 @@ var sqlite3 = require('sqlite3').verbose();
 var database = new sqlite3.Database(config.DATABASE_PATH);
 var util = require("util");
 
-var spamKickMessage = "Please do not spam in server chat.";
+var spamKickMessage = "Please do not spam the server chat.";
 /*
 
 DROP TABLE ignorelist;
@@ -51,10 +51,10 @@ module.exports = {
     resetDatabase : function(){
         var sqlString = "";
 
-        sqlString += "DROP TABLE ignorelist;";
-        sqlString += "DROP TABLE serverchatlog;";
-        sqlString += "DROP TABLE privatechatlog;";
-        sqlString += "DROP TABLE actionlog;";
+        sqlString += "DROP TABLE IF EXISTS ignorelist;";
+        sqlString += "DROP TABLE IF EXISTS serverchatlog;";
+        sqlString += "DROP TABLE IF EXISTS privatechatlog;";
+        sqlString += "DROP TABLE IF EXISTS actionlog;";
 
         sqlString += "CREATE TABLE ignorelist";
         sqlString += "(";
@@ -84,23 +84,23 @@ module.exports = {
         sqlString += "text TEXT";
         sqlString += ");";
 
-        database.run(sqlString);
+        database.exec(sqlString);
     },
     addtoIgnoreList : function(clientId){
         ts3api.getClientById(clientId,function(error,data){
             if(error){
-                console.log("Failed to add client " + clientId + "to ignorelist! Error: " + util.ispect(error));
+                console.log("Failed to add client " + clientId + "to ignorelist! Error: " + util.inspect(error));
             }else{
                 database.run("INSERT INTO ignorelist (databaseid,date) values (?,?);", data.client_database_id, new Date());
-                addActionLog(data.client_database_id + " Added to ignore list");
+                this.addActionLog(data.client_database_id + " Added to ignore list");
             }
-        });
+        }.bind(this));
         
     },
     isOnIgnoreList : function(clientId){
         ts3api.getClientById(clientId,function(error,data){
             if(error){
-                console.log("Failed to check if client " + clientId + " is on ignorelist! Error: " + util.ispect(error));
+                console.log("Failed to check if client " + clientId + " is on ignorelist! Error: " + util.inspect(error));
             }else{
                 database.all("SELECT * FROM ignorelist WHERE databaseid = ?;",data.client_database_id,function(err, rows) {
                     if(rows.length == 0){
@@ -119,7 +119,7 @@ module.exports = {
     logServerChat : function(clientId,text,sender) {
         ts3api.getClientById(clientId,function(error,data){
             if(error){
-                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.ispect(error));
+                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.inspect(error));
                 database.run("INSERT INTO serverchatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,-1,new Date());
             }else{
                 database.run("INSERT INTO serverchatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,data.client_database_id,new Date());
@@ -129,7 +129,7 @@ module.exports = {
     logPrivateChat : function(clientId,text,sender) {
         ts3api.getClientById(clientId,function(error,data){
             if(error){
-                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.ispect(error));
+                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.inspect(error));
                 database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,-1,new Date());
             }else{
                 database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,data.client_database_id,new Date());
@@ -138,37 +138,36 @@ module.exports = {
     },
     checkIfSpamming : function(clientId){
         var spamTimeFrame = 5000; //ms
-        var spamLimit = 10; //messages
+        var spamLimit = 4; //messages
         ts3api.getClientById(clientId,function(error,data){
             if(error){
-                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.ispect(error));
+                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.inspect(error));
             }else{
                 var checkDate = new Date();
                 checkDate.setTime(checkDate.getTime() - spamTimeFrame);
                 database.all("SELECT * FROM serverchatlog WHERE date > ? AND databaseid = ? ;",checkDate,data.client_database_id,function(err, rows) {
                     if(rows.length >= spamLimit){
-                        logAction("Client " + data.client_database_id + " has been found guilty of spamming.");
+                        this.logAction("Client " + data.client_database_id + " has been found guilty of spamming.");
                         //TODO: Check if recently kicked
-                        ts3api.kickClientFromServer(clientId,"",function(error,data){});
+                        ts3api.kickClientFromServer(clientId,spamKickMessage,function(error,data){});
                     }
-                });
+                }.bind(this));
             }
-        });
+        }.bind(this));
 
     },
     monitorChat : function(){
         ts3api.registerListener("textmessage",function(data){
-            console.log(util.inspect(data));
             switch(data.targetmode){
                 case 3: //Server chat
-                    logServerChat(data.invokerid,data.msg,data.invokername);
-                    checkIfSpamming(data.invokerid);
+                    this.logServerChat(data.invokerid,data.msg,data.invokername);
+                    this.checkIfSpamming(data.invokerid);
                 break;
                 case 1: //Private chat
-                    logPrivateChat(data.invokerid,data.msg,data.invokername);
+                    this.logPrivateChat(data.invokerid,data.msg,data.invokername);
                 break;
             }
-        });
+        }.bind(this));
     }
 
 };
