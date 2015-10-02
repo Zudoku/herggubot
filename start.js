@@ -1,3 +1,6 @@
 var herggubot = require('./herggubot');
 
-herggubot.launch();
+herggubot.resetDatabase();
+herggubot.launch(function(){
+	herggubot.monitorChat();
+});

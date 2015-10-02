@@ -28,6 +28,13 @@ module.exports = {
 	registerListener: function (listenerName, listener) {
 		this.__client.on(listenerName, listener);
 	},
+	registerEvent: function (event, arguments, callback) {
+		arguments["event"] = event;
+		this.__sendCommand("servernotifyregister", arguments, function (err) {
+			if (typeof callback == "function")
+				callback(err);
+		});
+	},
 	sendClientMessage: function (targetClientId, message, callback) {
 		this.__sendCommand("sendtextmessage", { targetmode: 1, target: targetClientId, msg: message }, function (err, res) {
 			if (typeof callback == "function")
@@ -52,6 +59,16 @@ module.exports = {
 	moveClient: function (clientId, targetChannelId, callback) {
 		this.__sendCommand("clientmove", { clid: clientId, cid: targetChannelId }, function (err, res) {
 			return callback(err, res);
+		});
+	},
+	moveManyClients: function (clientIds, targetChannelId, callback) {
+		async.forEach(clientIds, function (id, callback) {
+			this.moveClient(id, targetChannelId, function (err) {
+				callback(err);
+			});
+		}.bind(this), function (err) {
+			if (typeof callback == "function")
+				callback(err);
 		});
 	},
 	kickClientFromServer: function (clientId, reason, callback) {
@@ -100,19 +117,12 @@ module.exports = {
 			}
 		];
 		async.each(events, function (event, callback) {
-			this.__registerEvent(event.name, event.args, function (err) {
+			this.registerEvent(event.name, event.args, function (err) {
 				callback(err);
 			});
 		}.bind(this), function (err) {
 			if (err)
 				console.log("Error registering initial events.")
-			if (typeof callback == "function")
-				callback(err);
-		});
-	},
-	__registerEvent: function (event, arguments, callback) {
-		arguments["event"] = event;
-		this.__sendCommand("servernotifyregister", arguments, function (err) {
 			if (typeof callback == "function")
 				callback(err);
 		});

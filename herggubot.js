@@ -5,9 +5,12 @@ var database = new sqlite3.Database(config.DATABASE_PATH);
 var util = require("util");
 
 module.exports = {
-    launch : function(){
+    launch : function(callback){
         ts3api.initialize(config,function(){
-
+            callback();
+            ts3api.getChannelsByName("(Max.", function (e, r) {
+            	console.log(util.inspect(r))
+            });
         });
     },
     addtoIgnoreList : function(clientId){
@@ -26,38 +29,50 @@ module.exports = {
                 console.log("Failed to check if client " + clientId + " is on ignorelist! Error: " + util.ispect(error));
             }else{
                 database.all("SELECT * FROM ignorelist WHERE databaseid = ?;",data.client_database_id,function(err, rows) {
-                    if(rows.length == 0){
-                        return false;
-                    }else{
-                        return true;
-                    }
+                    return rows.length > 0;
                 });
-
             }
         });
     },
-    addActionLog : function(actionString) {
+    logAction : function(actionString) {
         database.run("INSERT INTO actionlog (text,date) VALUES (?,?)",actionString,new Date());
     },
-    addServerChatLog : function(clientId,text,sender) {
+    logServerChat : function(clientId,text,sender) {
         ts3api.getClientById(clientId,function(error,data){
             if(error){
-                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.ispect(error));
+                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.inspect(error));
                 database.run("INSERT INTO serverchatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,-1,new Date());
             }else{
                 database.run("INSERT INTO serverchatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,data.client_database_id,new Date());
             }
         });
     },
-    addPrivateChatLog : function(clientId,text,sender) {
+    logPrivateChat : function(clientId,text,sender) {
         ts3api.getClientById(clientId,function(error,data){
             if(error){
-                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.ispect(error));
+                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.inspect(error));
                 database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,-1,new Date());
             }else{
                 database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,data.client_database_id,new Date());
             }
         });
+    },
+    monitorChat : function(){
+        ts3api.registerListener("textmessage",function(data){
+            console.log(util.inspect(data));
+            switch(data.targetmode){
+                case 3: //Server chat
+                    this.logServerChat(data.invokerid,data.msg,data.invokername);
+                    this.checkIfSpamming(data.invokerid);
+                break;
+                case 1: //Private chat
+                    this.logPrivateChat(data.invokerid,data.msg,data.invokername);
+                break;
+            }
+        }.bind(this));
+    },
+    checkIfSpamming : function(clientid){
+        //database.all("SELECT ")
     },
     resetDatabase : function(){
         var sql = [
@@ -94,6 +109,6 @@ module.exports = {
 	        "text TEXT",
 	        ");"
 		];
-        database.run(sql.join(""));
+        database.exec(sql.join(""));
     }
 };
