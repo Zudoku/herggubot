@@ -4,16 +4,38 @@ var sqlite3 = require('sqlite3').verbose();
 var database = new sqlite3.Database(config.DATABASE_PATH);
 var util = require("util");
 
-var spamKickMessage = "Please do not spam the server chat.";
+var node = this;
 
 module.exports = {
+    ts3api : ts3api,
+    database : database,
+    node: node,
     launch : function(callback){
         ts3api.initialize(config,function(){
+
+            var modulesLoaded = this.loadModules();
+
+            console.log(modulesLoaded.length + " modules loaded!");
+
             callback();
-            ts3api.getChannelsByName("(Max.", function (e, r) {
-            	console.log(util.inspect(r))
-            });
-        });
+        }.bind(this));
+    },
+    loadModules : function(){
+        var modulesLoaded = [];
+        if(config.monitorChat){
+            var monitorChat = require('./modules/monitor-chat');
+            monitorChat.start(this);
+            modulesLoaded.push(monitorChat);
+        }
+        if(config.monitorChannelSlots){
+            var monitorChannelSlots = require('./modules/monitor-limited-slot-channels');
+            monitorChannelSlots.start(this);
+            modulesLoaded.push(monitorChannelSlots);
+        }
+
+
+        return modulesLoaded;
+
     },
     addtoIgnoreList : function(clientId){
         ts3api.getClientById(clientId,function(error,data){
@@ -58,39 +80,6 @@ module.exports = {
                 database.run("INSERT INTO privatechatlog (text,sender,databaseid,date) VALUES (?,?,?,?)",text,sender,data.client_database_id,new Date());
             }
         });
-    },
-    checkIfSpamming : function(clientId){
-        var spamTimeFrame = 5000; //ms
-        var spamLimit = 4; //messages
-        ts3api.getClientById(clientId,function(error,data){
-            if(error){
-                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.inspect(error));
-            }else{
-                var checkDate = new Date();
-                checkDate.setTime(checkDate.getTime() - spamTimeFrame);
-                database.all("SELECT * FROM serverchatlog WHERE date > ? AND databaseid = ? ;",checkDate,data.client_database_id,function(err, rows) {
-                    if(rows.length >= spamLimit){
-                        this.logAction("Client " + data.client_database_id + " has been found guilty of spamming.");
-                        //TODO: Check if recently kicked
-                        ts3api.kickClientFromServer(clientId,spamKickMessage,function(error,data){});
-                    }
-                }.bind(this));
-            }
-        }.bind(this));
-
-    },
-    monitorChat : function(){
-        ts3api.registerListener("textmessage",function(data){
-            switch(data.targetmode){
-                case 3: //Server chat
-                    this.logServerChat(data.invokerid,data.msg,data.invokername);
-                    this.checkIfSpamming(data.invokerid);
-                break;
-                case 1: //Private chat
-                    this.logPrivateChat(data.invokerid,data.msg,data.invokername);
-                break;
-            }
-        }.bind(this));
     },
     resetDatabase : function(){
         var sql = [
@@ -239,6 +228,6 @@ var registerForOneEvent = function(callback,index){
             callback();
         });
         return;
->>>>>>> 4482dd2f9b1d8ec4a816b837d3df06b46e6c3d7a
     }
 };
+*/

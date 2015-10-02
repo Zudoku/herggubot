@@ -18,6 +18,7 @@ module.exports = {
     			});
     		}.bind(this));
     	}.bind(this));
+    	this.NETWORK_DEBUG = config.NETWORK_DEBUG;
 	},
 	setNickname: function (nickname, callback) {
         this.__sendCommand("clientupdate", { client_nickname: nickname }, function (err) {
@@ -54,6 +55,45 @@ module.exports = {
 	getChannelsByName: function (channelName, callback) {
 		this.__sendCommand("channelfind", { pattern: channelName }, function (err, res) {
 			return callback(err, res);
+		});
+	},
+	getChannelById: function(channelId, callback) {
+		this.__sendCommand("channelinfo", { cid: channelId }, function (err, res) {
+			return callback(err, res);
+		});
+	},
+	// channelName - Channels name
+	// maxClients - number of clients that is the maximum. 0 or -1 for no restriction
+	// CPID - channel parent id, what channel is the parent channel. 0 for level 1 channel
+	// type - channel type. 1 = temporary 2 = semipermament 3 = permanent
+	createChannel : function(channelName, maxClients, CPID, type, callback) {
+		var parameters = { channel_name: channelName , channel_maxclients: maxClients, cpid: CPID, };
+		switch(type){
+			case 1:
+				parameters.channel_flag_temporary = 1;
+				break;
+			case 2:
+				parameters.channel_flag_semi_permanent = 1;
+				break;
+			case 3:
+				parameters.channel_flag_permanent = 1;
+				break;
+			default:
+				parameters.channel_flag_temporary = 1;
+				break;
+		}
+		if(maxClients > 0){
+			parameters.channel_flag_maxclients_unlimited = 1;
+
+		}
+		this.__sendCommand("channelcreate",parameters,function(err,res) { 
+			return callback(err,res);
+		});
+	},
+	deleteChannel : function(channelId, callback) {
+		//Force delete even if clients inside
+		this.__sendCommand("channeldelete",{ cid: channelId , force: 1},function(err,res) { 
+			return callback(err,res);
 		});
 	},
 	moveClient: function (clientId, targetChannelId, callback) {
@@ -128,7 +168,9 @@ module.exports = {
 		});
 	},
 	__sendCommand: function (command, arguments, callback) {
-		console.log("SEND: " + command + " " + JSON.stringify(arguments));
+		if(this.NETWORK_DEBUG){
+			console.log("SEND: " + command + " " + JSON.stringify(arguments));
+		}
 		this.__client.send(command, arguments, function(err, response, rawResponse) {
 		    this.lastRequestTime = new Date();
 		    if (err)
