@@ -33,10 +33,12 @@ module.exports = {
         this.ts3api.registerListener("textmessage",function(data){
             switch(data.targetmode){
                 case 3: //Server chat
+                    console.log("SERVER CHAT: " + data.invokername + " : " + data.msg);
                     this.bot.logServerChat(data.invokerid,data.msg,data.invokername);
                     this.checkIfSpamming(data.invokerid);
                 break;
-                case 1: //Private chat
+                case 1: //Private chat'
+                    console.log("PRIVATE CHAT: " + data.invokername + " : " + data.msg);
                     this.bot.logPrivateChat(data.invokerid,data.msg,data.invokername);
                 break;
             }
