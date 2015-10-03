@@ -61,8 +61,8 @@ module.exports = {
 
 
 
-            //Name channels correctly
-            //Sort them to right order
+            //TODO: Name channels correctly
+            //TODO: Sort them to right order
 
 
             
@@ -152,7 +152,7 @@ module.exports = {
                     callback(error);
                     return;
                 }
-                console.log("Channel " + generatedChannelName + " + created");
+                console.log("Channel " + generatedChannelName + " created");
                 this.bot.logAction("Created channel "+ generatedChannelName + " with id " + response.cid);
 
                 clonedChannel.clones.push({
