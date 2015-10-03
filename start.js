@@ -1,6 +1,6 @@
 var herggubot = require('./herggubot');
 
-herggubot.resetDatabase();
+//herggubot.resetDatabase();
 herggubot.launch(function(){
 	
 });

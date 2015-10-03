@@ -83,16 +83,24 @@ module.exports = {
 				break;
 		}
 		if(maxClients > 0){
-			parameters.channel_flag_maxclients_unlimited = 1;
+			parameters.channel_flag_maxclients_unlimited = 0;
 
 		}
 		this.__sendCommand("channelcreate",parameters,function(err,res) { 
 			return callback(err,res);
 		});
 	},
-	deleteChannel : function(channelId, callback) {
+	deleteChannel: function(channelId, callback) {
 		//Force delete even if clients inside
 		this.__sendCommand("channeldelete",{ cid: channelId , force: 1},function(err,res) { 
+			return callback(err,res);
+		});
+	},
+	//Parameters are channel Properties
+	//http://i.imgur.com/LJwSZFF.png
+	editChannel: function(channelId, parameters, callback) {
+		parameters.cid = channelId;
+		this.__sendCommand("channeledit",parameters,function(err,res) { 
 			return callback(err,res);
 		});
 	},
