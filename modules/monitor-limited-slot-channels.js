@@ -17,14 +17,19 @@ module.exports = {
             if (err)
                 return console.log(err);
             this.limitedSlotChannels = channels;
-            //Update the amount of users in the tracked channels
-            setInterval(function () {
-                this.updateLimitedSlotChannelsClientAmount(function(){});
-            }.bind(this), 2000);
-            //Check if channels are full / check if channels need to be deleted
-            setInterval(function () {
-                this.checkLimitedSlotChannels();
-            }.bind(this), 10000);
+
+            this.cleanUpLeftOverClones(function(){
+                //Update the amount of users in the tracked channels
+                setInterval(function () {
+                    this.updateLimitedSlotChannelsClientAmount(function(){});
+                }.bind(this), 2000);
+                //Check if channels are full / check if channels need to be deleted
+                setInterval(function () {
+                    this.checkLimitedSlotChannels();
+                }.bind(this), 10000);
+            }.bind(this));
+
+            
         }.bind(this));
     },
     checkLimitedSlotChannels : function(){
@@ -272,6 +277,30 @@ module.exports = {
         }.bind(this), function (err) {
 
         }.bind(this));
+    },
+    cleanUpLeftOverClones: function(callback){
+        var removedClones = [];
+        for(var o= 0 ; o < this.limitedSlotChannels.length; o++){
+            var regex = /\(Max\.\s([0-9])\)\s([A-Za-z]{5})/g.exec(this.limitedSlotChannels[o].channelName);
+            if(regex != null){
+                removedClones.push(this.limitedSlotChannels[o]);
+            }
+        }
+        for(var l= 0 ; l < removedClones.length; l++){
+            var removed = removedClones[l];
+            this.ts3api.deleteChannel(removed.channelId, function(error, response){
+                if(error){
+                    console.log("Failed to remove leftover cloned channel. " + util.inspect(error));
+                }else{
+                    console.log("Deleted leftover cloned channel " + removed.channelName);
+                    this.bot.logAction("Deleted channel " + removed.channelName);
+                    //Delete from tracking list
+                    this.limitedSlotChannels.splice(this.limitedSlotChannels.indexOf(removed),1);
+                }
+            }.bind(this));
+        }
+        callback();
+
     }
 
 };
