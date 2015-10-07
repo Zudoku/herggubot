@@ -24,49 +24,50 @@ module.exports = {
             //Check if channels are full / check if channels need to be deleted
             setInterval(function () {
                 this.checkLimitedSlotChannels();
-            }.bind(this), 2000);
+            }.bind(this), 10000);
         }.bind(this));
     },
     checkLimitedSlotChannels : function(){
         async.forEach(this.limitedSlotChannels, function (channel, callback) {
 
-
+            var changed = false;
             //Check if new channel needs to be made (If atleast one empty channel)
             //Create new channel if necessary
             //Or delete channel if necessary'
             var deletedChannels = [];
 
             for(var u = 0 ; u < channel.clones.length ; u++){
-                if(channel.clones[u].usedSlots == 0){
+                var nowDate = new Date();
+                if(channel.clones[u].usedSlots == 0 && (nowDate.getTime() - channel.clones[u].sameSince.getTime() ) >= TIME_CHANNEL_DELETE * 1000){
                     //If there are other empty channels
                     if(this.checkIfOtherEmptyChannels(channel,u,deletedChannels)){
                         //Remove unnecessary channel
                         //this.removeClonedChannel(channel,u);
                         deletedChannels.push(u);
+                        changed = true;
                     }
                 }
             }
+            deletedChannels.reverse();
+
             //Remove the cloned channels that were marked for deletion
             for(var k = 0 ; k < deletedChannels.length ; k++){
                 this.removeClonedChannel(channel,deletedChannels[k]);
             }
+
             //Check if new channel needs to be created
             if(this.checkIfNewCloneNeeded(channel)){
                 this.cloneLimitedChannel(channel,function(error){
                     if(error){
                         //
                     }
-                });
+                    //this.refreshClones(channel);
+                }.bind(this));
             }
 
-
-
-            //TODO: Name channels correctly
-            //TODO: Sort them to right order
-
-
-            
-
+            if(changed){
+                //this.refreshClones(channel);
+            }
         }.bind(this), function (err) {
 
         }.bind(this));
@@ -86,7 +87,7 @@ module.exports = {
                 }
             }.bind(this));
             //Loop through cloned channels
-            async.forEach(this.limitedSlotChannels.clones, function (clone, callback) {
+            async.forEach(channel.clones, function (clone, callback) {
                 this.ts3api.getClientsInChannel(clone.channelId, function (err, clients) {
                     if(err){
                         console.log("Error while getting the amount of clients in cloned limited slot channel. " + util.inspect(err));
@@ -120,16 +121,24 @@ module.exports = {
                 this.ts3api.getClientsInChannel(channel.cid, function (error, clients) {
                     if (error)
                         return callback("Failed to monitor limited slot channels, error while getting clients in channel: " + channel.cid + " " + util.inspect(error),[]);
-                    limitedSlotChannels.push({
-                        channelId: channel.cid,
-                        maxSlots: maxSlots,
-                        usedSlots: clients.length,
-                        channelName: channel.channel_name,
-                        sameSince: new Date(),
-                        clones: []
-                    });
-                    callback(null,limitedSlotChannels);
-                });
+
+                    this.ts3api.getChannelById(channel.cid, function(error,channelInfo){
+                        if (error)
+                            return callback("Failed to monitor limited slot channels, error while getting channel info: " + channel.cid + " " + util.inspect(error),[]);
+
+                        limitedSlotChannels.push({
+                            channelId: channel.cid,
+                            maxSlots: maxSlots,
+                            usedSlots: clients.length,
+                            channelName: channel.channel_name,
+                            sameSince: new Date(),
+                            clones: [],
+                            order: channelInfo.channel_order,
+                            cpid: channelInfo.cpid
+                        });
+                        callback(null,limitedSlotChannels);
+                    }.bind(this));
+                }.bind(this));
             }.bind(this), function (err) {
                 if (err)
                     return console.log(err);
@@ -146,7 +155,14 @@ module.exports = {
                 return;
             }
             var generatedChannelName = this.calculateNewChannelName(clonedChannel);
-            this.ts3api.createChannel(generatedChannelName, clonedChannel.maxSlots, channel.pid,2, function(error, response) {
+            var initialOrder;
+            if(clonedChannel.clones.length == 0){
+                initialOrder = clonedChannel.channelId;
+            }else{
+                initialOrder = clonedChannel.clones[clonedChannel.clones.length - 1].channelId;
+            }
+
+            this.ts3api.createChannel(generatedChannelName, clonedChannel.maxSlots, channel.pid,2,{channel_order: initialOrder}, function(error, response) {
                 if (error){
                     console.log("Failed to clone channel, error while creating the channel. " +  util.inspect(error));
                     callback(error);
@@ -167,16 +183,22 @@ module.exports = {
         }.bind(this));
     },
     calculateNewChannelName: function(channel) {
-        var candidate = channel.channelName + "+";
         var deciding = true;
+        var idLength = 5;
+        var candidate;
         while(deciding){
             var found = false;
-            for(var x = 0 ; x < channel.clones.length ; x++){
-                if(channel.clones[x].channelName == candidate){
-                    candidate += "+";
+            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            candidate = channel.channelName + " ";
+            for( var i=0; i < idLength; i++ ){
+                candidate += possible.charAt(Math.floor(Math.random() * possible.length));
+            }
+            for(var u = 0 ; u < channel.clones.length; u++){
+                if(channel.clones[u].channelName == candidate){
                     found = true;
                 }
             }
+
             if(!found){
                 deciding = false;
             }
@@ -189,22 +211,21 @@ module.exports = {
             return true;
         }
         for(var i = 0 ; i < channel.clones.length; i++){
-            if(channel.clones[i].usedSlots == 0 && index != i && deletedClones.indexOf(i) == -1){
-                return true;
+            var nowDate = new Date();
+            if(channel.clones[i].usedSlots == 0 && index != i && deletedClones.indexOf(i) == -1 && (nowDate.getTime() - channel.clones[i].sameSince.getTime() ) >= TIME_CHANNEL_DELETE * 1000){
+                return true; 
             }
         }
         return false;
     },
     removeClonedChannel: function(channel,index) {
         this.ts3api.deleteChannel(channel.clones[index].channelId, function(error, response){
-            if(err){
+            if(error){
                 console.log("Failed to remove unneccessary cloned channel. " + util.inspect(error));
             }else{
                 console.log("Deleted channel " + channel.clones[index].channelName);
                 this.bot.logAction("Deleted channel " + channel.clones[index].channelName);
                 //Delete from tracking list
-                console.log("Untracking " + channel.clones[index].channelName);
-                //Remove from tracking list
                 channel.clones.splice(channel.clones.indexOf(channel.clones[index]),1);
             }
         }.bind(this));
@@ -221,6 +242,36 @@ module.exports = {
         }
 
         return !emptyChannel;
+    },
+    refreshClones: function(channel){
+        //Reset name
+        for(var i= 0 ; i < channel.clones.length ; i++){
+            channel.clones[i].channelName = "";
+        }
+        //New channel names
+        for(var i= 0 ; i < channel.clones.length ; i++){
+            channel.clones[i].channelName = this.calculateNewChannelName(channel);
+        }
+        //Sort them 
+        channel.clones.sort(function(a,b){
+            var pluses_a  = /(\++)/.exec(a.channelName)[0].length;
+            var pluses_b  = /(\++)/.exec(b.channelName)[0].length;
+            if(pluses_a > pluses_b){ return 1; }
+            if(pluses_a < pluses_b){ return -1; }
+            return 0;
+        });
+
+        //Update channels
+        async.forEach(channel.clones, function (clone, callback) {
+            var cloneOrder = (channel.clones.indexOf(clone) == 0) ? channel.channelId: channel.clones[channel.clones.indexOf(clone)-1].channelId ;
+            this.ts3api.editChannel(clone.channelId,{channel_order: cloneOrder, cpid: channel.channelId, channel_name: clone.channelName},function(err, response){
+                if(err){
+                    console.log("ERROR WHILE EDITING CHANNEL");
+                }
+            });
+        }.bind(this), function (err) {
+
+        }.bind(this));
     }
 
 };

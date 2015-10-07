@@ -1,5 +1,6 @@
 var TeamSpeakClient = require("node-teamspeak");
 var async = require("async");
+var util = require('util');
 
 module.exports = {
 	lastRequestTime: null,
@@ -66,8 +67,12 @@ module.exports = {
 	// maxClients - number of clients that is the maximum. 0 or -1 for no restriction
 	// CPID - channel parent id, what channel is the parent channel. 0 for level 1 channel
 	// type - channel type. 1 = temporary 2 = semipermament 3 = permanent
-	createChannel : function(channelName, maxClients, CPID, type, callback) {
-		var parameters = { channel_name: channelName , channel_maxclients: maxClients, cpid: CPID, };
+	// options - JS object with other parameters
+	createChannel : function(channelName, maxClients, CPID, type, options, callback) {
+		var parameters = options;
+		parameters.channel_name = channelName; 
+		parameters.channel_maxclients = maxClients;
+		parameters.cpid = CPID;
 		switch(type){
 			case 1:
 				parameters.channel_flag_temporary = 1;
@@ -184,6 +189,9 @@ module.exports = {
 		    if (err)
 		    	console.log("Error while sending command: " + command + " Error: " + JSON.stringify(err));
 	        if (typeof callback == "function")
+	        	if(this.NETWORK_DEBUG){
+					console.log("RECEIVE: " + util.inspect(response));
+				}
 	        	return callback(err, response);
 		}.bind(this));
 	}
