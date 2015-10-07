@@ -8,7 +8,7 @@ Run this oneliner to install:
 ```
 #!shell
 
-git clone https://bitbucket.org/Arap/herggubot.git; cd herggubot; npm install; 
+git clone https://bitbucket.org/Arap/herggubot.git; cd herggubot; npm install 
 ```
 
 Then, edit the configuration file **config.js**
