@@ -166,7 +166,7 @@ module.exports = {
 			},
 			{
 				name: "channel",
-				args: { id: 1 }
+				args: { id: 0 }
 			}
 		];
 		async.each(events, function (event, callback) {
