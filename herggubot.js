@@ -32,6 +32,11 @@ module.exports = {
             monitorChannelSlots.start(this);
             modulesLoaded.push(monitorChannelSlots);
         }
+        if(config.extraLogs){
+            var extraLogs = require('./modules/extra-logs');
+            extraLogs.start(this);
+            modulesLoaded.push(extraLogs);
+        }
 
 
         return modulesLoaded;
@@ -87,6 +92,7 @@ module.exports = {
 	        "DROP TABLE IF EXISTS serverchatlog;",
 	        "DROP TABLE IF EXISTS privatechatlog;",
 	        "DROP TABLE IF EXISTS actionlog;",
+            "DROP TABLE IF EXISTS serveractionlog;",
 
 	        "CREATE TABLE ignorelist",
 	        "(",
@@ -114,7 +120,14 @@ module.exports = {
 	        "(",
 	        "date datetime,",
 	        "text TEXT",
-	        ");"
+	        ");",
+
+            "CREATE TABLE serveractionlog",
+            "(",
+            "date datetime,",
+            "text TEXT,",
+            "actiontype TEXT",
+            ");"
 		];
         database.exec(sql.join(""));
     }
