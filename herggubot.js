@@ -5,34 +5,40 @@ var database = new sqlite3.Database(config.DATABASE_PATH);
 var util = require("util");
 
 var node = this;
+var modulesLoaded = [];
 
 module.exports = {
     ts3api : ts3api,
     database : database,
     node: node,
     launch : function(callback){
-        ts3api.initialize(config,function(){
 
-            var modulesLoaded = this.loadModules();
-
-            console.log(modulesLoaded.length + " modules loaded!");
-
-            callback();
-        }.bind(this));
+        this.resetDatabase();
+        if(config.module_web_interface){
+            var webserver = require('./modules/webserver/web-server');
+            webserver.start(this);
+            modulesLoaded.push(webserver);
+        }
+        if(config.launchBotOnStartUp){
+            ts3api.initialize(config,function(){
+                modulesLoaded = this.loadModules();
+                console.log(modulesLoaded.length + " modules loaded!");
+                callback();
+            }.bind(this));
+        } 
     },
     loadModules : function(){
-        var modulesLoaded = [];
-        if(config.monitorChat){
+        if(config.module_monitor_chat){
             var monitorChat = require('./modules/monitor-chat');
             monitorChat.start(this);
             modulesLoaded.push(monitorChat);
         }
-        if(config.monitorChannelSlots){
+        if(config.module_monitor_channel_slots){
             var monitorChannelSlots = require('./modules/monitor-limited-slot-channels');
             monitorChannelSlots.start(this);
             modulesLoaded.push(monitorChannelSlots);
         }
-        if(config.extraLogs){
+        if(config.module_extra_logs){
             var extraLogs = require('./modules/extra-logs');
             extraLogs.start(this);
             modulesLoaded.push(extraLogs);

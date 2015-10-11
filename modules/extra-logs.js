@@ -1,5 +1,4 @@
 var SERVER_EDIT = "SERVER_EDIT";
-var CHANNEL_TYPE = "CHANNEL";
 var CLIENT_JOIN = "CLIENT_JOIN";
 var CLIENT_LEAVE = "CLIENT_LEAVE";
 var CLIENT_MOVE = "CLIENT_MOVE";
@@ -72,7 +71,7 @@ module.exports = {
                 }
                 logmessage = "User " + data.clid + " was " + action + " to channel_ID: " + channel + " by " + invoker + JSON.stringify(modifiedData);
             }else{
-                logmessage = "User " + data.clid + " moved to channel_ID: " + data.ctid +" becuse of reason " + data.reasonid;
+                logmessage = "User " + data.clid + " moved to channel_ID: " + data.ctid +" because of reason " + data.reasonid;
             }
             
 
