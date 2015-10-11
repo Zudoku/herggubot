@@ -1,0 +1,31 @@
+.button-success,
+        .button-error,
+        .button-warning,
+        .button-secondary {
+    color: white !important;
+    border-radius: 4px !important;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2) !important;
+}
+
+
+.button-error {
+    background: rgb(153, 31, 0) !important; /* this is a maroon */
+}
+.button-warning {
+    background: rgb(230, 138, 46) !important; /* this is a maroon */
+}
+.button-secondary {
+    background: rgb(51, 66, 112) !important; /* this is a light blue */
+    border-width: 1px !important;
+    border-color: black !important;
+}
+.leftPadding {
+	padding-left: 4px;
+}
+
+.greenText {
+	color: green !important;
+}
+.redText {
+	color: red !important;
+}

@@ -122,7 +122,7 @@ module.exports = {
             var limitedSlotChannels = [];
             async.forEach(channels, function (channel, callback) {
                 //console.log(channel);
-                var maxSlots = parseInt(/\(Max\.\s([0-9])\)/g.exec(channel.channel_name)[1]); //1 takes the result from the second capture group from the regex object //First one (0) is the whole (Max. #) thing                
+                var maxSlots = parseInt(/\(Max\.(?:\s)*([0-9])\)/g.exec(channel.channel_name)[1]); //1 takes the result from the second capture group from the regex object //First one (0) is the whole (Max. #) thing                
                 this.ts3api.getClientsInChannel(channel.cid, function (error, clients) {
                     if (error)
                         return callback("Failed to monitor limited slot channels, error while getting clients in channel: " + channel.cid + " " + util.inspect(error),[]);
@@ -194,7 +194,7 @@ module.exports = {
         while(deciding){
             var found = false;
             var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-            candidate = channel.channelName + " ";
+            candidate = channel.channelName + " #";
             for( var i=0; i < idLength; i++ ){
                 candidate += possible.charAt(Math.floor(Math.random() * possible.length));
             }
@@ -281,7 +281,7 @@ module.exports = {
     cleanUpLeftOverClones: function(callback){
         var removedClones = [];
         for(var o= 0 ; o < this.limitedSlotChannels.length; o++){
-            var regex = /\(Max\.\s([0-9])\)\s([A-Za-z]{5})/g.exec(this.limitedSlotChannels[o].channelName);
+            var regex = /\(Max\.\s([0-9])\)\s#([A-Za-z]{5})/g.exec(this.limitedSlotChannels[o].channelName);
             if(regex != null){
                 removedClones.push(this.limitedSlotChannels[o]);
             }
