@@ -13,7 +13,7 @@ module.exports = {
     node: node,
     launch : function(callback){
 
-        this.resetDatabase();
+        //this.resetDatabase();
         if(config.module_web_interface){
             var webserver = require('./modules/webserver/web-server');
             webserver.start(this);
@@ -28,17 +28,17 @@ module.exports = {
         } 
     },
     loadModules : function(){
-        if(config.module_monitor_chat){
+        if(config.module_monitor_chat.enabled){
             var monitorChat = require('./modules/monitor-chat');
             monitorChat.start(this);
             modulesLoaded.push(monitorChat);
         }
-        if(config.module_monitor_channel_slots){
+        if(config.module_monitor_channel_slots.enabled){
             var monitorChannelSlots = require('./modules/monitor-limited-slot-channels');
             monitorChannelSlots.start(this);
             modulesLoaded.push(monitorChannelSlots);
         }
-        if(config.module_extra_logs){
+        if(config.module_extra_logs.enabled){
             var extraLogs = require('./modules/extra-logs');
             extraLogs.start(this);
             modulesLoaded.push(extraLogs);

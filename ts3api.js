@@ -7,7 +7,7 @@ module.exports = {
 	initialize: function (config, callback) {
 		this.QUERY_TIME_LIMIT = config.QUERY_TIME_LIMIT;
 		this.__client = new TeamSpeakClient(config.TS_IP);
-    	this.__login(config.USERNAME, config.PASSWORD, function (err) {
+    	this.__login(config.SERVERQUERY_USERNAME, config.SERVERQUERY_PASSWORD, function (err) {
     		if (err && typeof callback == "function")
     			return callback(err);
     		this.setNickname(config.NICKNAME, function (err) {
@@ -19,7 +19,7 @@ module.exports = {
     			});
     		}.bind(this));
     	}.bind(this));
-    	this.NETWORK_DEBUG = config.NETWORK_DEBUG;
+    	this.DEBUG_NETWORK = config.DEBUG_NETWORK;
 	},
 	setNickname: function (nickname, callback) {
         this.__sendCommand("clientupdate", { client_nickname: nickname }, function (err) {
@@ -181,7 +181,7 @@ module.exports = {
 		});
 	},
 	__sendCommand: function (command, arguments, callback) {
-		if(this.NETWORK_DEBUG){
+		if(this.DEBUG_NETWORK){
 			console.log("SEND: " + command + " " + JSON.stringify(arguments));
 		}
 		this.__client.send(command, arguments, function(err, response, rawResponse) {
@@ -189,7 +189,7 @@ module.exports = {
 		    if (err)
 		    	console.log("Error while sending command: " + command + " Error: " + JSON.stringify(err));
 	        if (typeof callback == "function")
-	        	if(this.NETWORK_DEBUG){
+	        	if(this.DEBUG_NETWORK){
 					console.log("RECEIVE: " + util.inspect(response));
 				}
 	        	return callback(err, response);

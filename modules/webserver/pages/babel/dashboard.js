@@ -49,23 +49,25 @@ var ServerLog = React.createClass({
         server_edit: false,
         channel_create: false,
         channel_remove: false,
-        channel_edit: false
+        channel_edit: false,
+        regex_search: false,
+        search: ""
        }
     };
   },
   loadLogsFromServer: function() {
     var url= "";
     if(this.props.state == "server-log"){
-      url="/api/serverlog";
+      url="/herggubot/api/serverlog";
     }
     if(this.props.state == "serverchat-log"){
-      url="/api/serverchat";
+      url="/herggubot/api/serverchat";
     }
     if(this.props.state == "privatechat-log"){
-      url="/api/privatechat";
+      url="/herggubot/api/privatechat";
     }
     if(this.props.state == "action-log"){
-      url="/api/actionlog";
+      url="/herggubot/api/actionlog";
     }
 
     $.ajax({
@@ -106,6 +108,12 @@ var ServerLog = React.createClass({
     this.loadLogsFromServer();
 
   },
+  searchChanged: function(event){
+    var newState = this.state;
+    newState.action_settings.search = event.target.value;
+    this.setState(newState);
+    this.loadLogsFromServer();
+  },
   componentDidUpdate: function(prevProps,prevState) {
     if(this.state.state=="server-log"){
       var inputs = $(":input");
@@ -114,6 +122,10 @@ var ServerLog = React.createClass({
           inputs[p].checked=true;
         }
       }
+      if($("#search")[0].value == ""){
+         $("#search")[0].value = this.state.action_settings.search;
+      }
+     
     }
   },
   render: function() {
@@ -121,12 +133,25 @@ var ServerLog = React.createClass({
         return (
             <div className="serverLog">
               <div className="row">
-                <div className="col-md-4"><h3>Filter - do not show</h3></div>
+                <div className="col-md-4"><h3>Filters</h3></div>
                 <div className="col-md-4"></div>
                 <div className="col-md-4"></div>
               </div>
               <hr/>
               <form>
+              <div className="row">
+                <div className="col-md-2"></div>
+                <div className="col-md-6">
+                  <input type="text" onChange={this.searchChanged} className="form-control" id="search" />
+                </div>
+                <div className="col-md-2">
+                  <div className="checkbox">
+                      <label>
+                        <input type="checkbox" data-config="regex_search" onClick={this.actionConfigChanged}/> REGEX
+                      </label>
+                    </div>
+                </div>
+              </div> <hr/>
                 <div className="row">
                   <div className="col-md-2"></div>
                   <div className="col-md-2">
@@ -193,8 +218,7 @@ var ServerLog = React.createClass({
                   <div className="col-md-2"></div>
                 </div>
               </form>
-
-
+              <hr/>
               <table className="table">
                 <thead>
                   <tr>
