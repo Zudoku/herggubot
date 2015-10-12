@@ -1,8 +1,8 @@
 var async = require('async');
 var util = require('util');
+var config = require('../config');
 
-var TIME_CHANNEL_NOT_EMPTY = 5;
-var TIME_CHANNEL_DELETE = 5;
+var TIME_CHANNEL_DELETE = config.module_monitor_channel_slots.channel_delete_time;
 
 module.exports = {
     start: function (herggubot) {

@@ -5,9 +5,9 @@ var NavigationBar = React.createClass({
         <div className="container-fluid">
           <div className="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul className="nav navbar-nav">
-              <li><a href="/">Dashboard</a></li>
-              <li><a href="/">Configuration</a></li>
-              <li><a href="/">Modules</a></li>
+              <li><a href="/herggubot/">Dashboard</a></li>
+              <li><a href="/herggubot/config/">Configuration</a></li>
+              <li><a href="/herggubot/modules">Modules</a></li>
             </ul>
           </div>
         </div>

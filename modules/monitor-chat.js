@@ -1,5 +1,5 @@
-
-var spamKickMessage = "Please do not spam the server chat.";
+var config = require('../config');
+var spamKickMessage = config.module_monitor_chat.spam_message;
 
 module.exports = {
     start: function (herggubot) {
@@ -10,8 +10,8 @@ module.exports = {
         console.log("Module monitor-chat loaded!");
     },
     checkIfSpamming : function(clientId){
-        var spamTimeFrame = 5000; //ms
-        var spamLimit = 4; //messages
+        var spamTimeFrame = config.module_monitor_chat.spam_timeframe; //ms
+        var spamLimit = config.module_monitor_chat.spam_limit; //messages
         this.ts3api.getClientById(clientId,function(error,data){
             if(error){
                 console.log("Failed to check databaseid for client " + clientId + " Error: " + util.inspect(error));
@@ -33,12 +33,16 @@ module.exports = {
         this.ts3api.registerListener("textmessage",function(data){
             switch(data.targetmode){
                 case 3: //Server chat
-                    console.log("SERVER CHAT: " + data.invokername + " : " + data.msg);
+                    if(config.DEBUG_NETWORK){
+                        console.log("SERVER CHAT: " + data.invokername + " : " + data.msg);
+                    }
                     this.bot.logServerChat(data.invokerid,data.msg,data.invokername);
                     this.checkIfSpamming(data.invokerid);
                 break;
                 case 1: //Private chat'
-                    console.log("PRIVATE CHAT: " + data.invokername + " : " + data.msg);
+                    if(config.DEBUG_NETWORK){
+                        console.log("PRIVATE CHAT: " + data.invokername + " : " + data.msg);
+                    }
                     this.bot.logPrivateChat(data.invokerid,data.msg,data.invokername);
                 break;
             }
