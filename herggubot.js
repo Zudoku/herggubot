@@ -13,7 +13,9 @@ module.exports = {
     node: node,
     launch : function(callback){
 
-        //this.resetDatabase();
+        if(config.resetDatabase){
+            this.resetDatabase();
+        }
         if(config.module_web_interface){
             var webserver = require('./modules/webserver/web-server');
             webserver.start(this);
