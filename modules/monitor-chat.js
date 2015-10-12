@@ -20,7 +20,7 @@ module.exports = {
                 checkDate.setTime(checkDate.getTime() - spamTimeFrame);
                 this.database.all("SELECT * FROM serverchatlog WHERE date > ? AND databaseid = ? ;",checkDate,data.client_database_id,function(err, rows) {
                     if(rows.length >= spamLimit){
-                        this.logAction("Client " + data.client_database_id + " has been found guilty of spamming.");
+                        this.bot.logAction("Client " + data.client_database_id + " has been found guilty of spamming.");
                         //TODO: Check if recently kicked
                         this.ts3api.kickClientFromServer(clientId,spamKickMessage,function(error,data){});
                     }
