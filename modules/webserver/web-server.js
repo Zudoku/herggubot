@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var config = require('../../config');
+var util = require('util');
 
 module.exports = {
 	start: function (herggubot) {
@@ -83,10 +84,34 @@ module.exports = {
         	res.send("lol");
         });
 
+        app.get("/herggubot/api/config", function(req, res){
+        	var safeConfig = require('../../config');
+        	safeConfig.TS_IP = undefined;
+        	safeConfig.DATABASE_PATH = undefined;
+        	safeConfig.SERVERQUERY_USERNAME = undefined;
+        	safeConfig.SERVERQUERY_PASSWORD = undefined;
+
+        	res.send(JSON.stringify(safeConfig, null, 4));
+        }.bind(this));
+
+        app.get("/herggubot/api/modules", function(req, res){
+        	var modulemap = herggubot.modulesLoaded.map(function(obj){
+        		return obj.share();
+        	});
+
+        	res.send(JSON.stringify(modulemap, null, 4));
+        }.bind(this));
+
         app.listen(config.module_web_interface.port);
         console.log("Webserver started at port " + config.module_web_interface.port);
         console.log("Module web-server loaded!");
 
 
+    },
+    share : function() {
+        var object = {
+            module: "web-server"
+        };
+        return object;
     }
 };

@@ -104,5 +104,11 @@ module.exports = {
             var client = data.client_nickname + " [ID=" + data.client_database_id + " GROUP=" + data.client_servergroups + " TYPE=" + clientType +  "] ";
             this.logServerActionChat("Client " + client + "entered server" ,CLIENT_JOIN);
         }.bind(this));
+    },
+    share : function() {
+        var object = {
+            module: "extra-logs"
+        };
+        return object;
     }
 };

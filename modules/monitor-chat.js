@@ -47,5 +47,11 @@ module.exports = {
                 break;
             }
         }.bind(this));
+    },
+    share : function() {
+        var object = {
+            module: "monitor-chat"
+        };
+        return object;
     }
 };

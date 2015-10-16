@@ -3,6 +3,7 @@ var util = require('util');
 var config = require('../config');
 
 var TIME_CHANNEL_DELETE = config.module_monitor_channel_slots.channel_delete_time;
+var channelsMarkedForDeletion = [];
 
 module.exports = {
     start: function (herggubot) {
@@ -26,7 +27,7 @@ module.exports = {
                 //Check if channels are full / check if channels need to be deleted
                 setInterval(function () {
                     this.checkLimitedSlotChannels();
-                }.bind(this), 10000);
+                }.bind(this), 2000);
             }.bind(this));
 
             
@@ -54,7 +55,7 @@ module.exports = {
                 }
             }
             deletedChannels.reverse();
-
+            this.channelsMarkedForDeletion = deletedChannels;
             //Remove the cloned channels that were marked for deletion
             for(var k = 0 ; k < deletedChannels.length ; k++){
                 this.removeClonedChannel(channel,deletedChannels[k]);
@@ -301,6 +302,13 @@ module.exports = {
         }
         callback();
 
+    },
+    share : function() {
+        var object = {
+            module: "monitor-limited-slot-channels",
+            channels: this.limitedSlotChannels
+        };
+        return object;
     }
 
 };
