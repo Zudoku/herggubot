@@ -11,6 +11,7 @@ module.exports = {
     ts3api : ts3api,
     database : database,
     node: node,
+    modulesLoaded : modulesLoaded,
     launch : function(callback){
 
         if(config.resetDatabase){
