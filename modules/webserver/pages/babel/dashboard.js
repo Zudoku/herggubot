@@ -12,14 +12,40 @@ var DashBoard = React.createClass({
   },
   changeTab: function(event){
     this.setState({state: $(event.target).attr("data-tab") },function(){
+      this.refs.logs.state.update_logs_flag = true;
       this.refs.logs.loadLogsFromServer();
       this.forceUpdate();
     }.bind(this));
     
   },
+  tryToRestart: function(event){
+    var password = prompt("Password","");
+    $.ajax({
+      url: "/herggubot/api/restart",
+      dataType: 'json',
+      type: "POST",
+      data: {pw: password},
+      success: function(data) {
+        if(data.success == true){
+          alert("Restarting!");
+        }else{
+          alert("Restart not successful");
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+        alert("Restart not successful");
+      }.bind(this)
+    });
+    console.log(password);
+  },
   render: function() {
     return (
       <div>
+        <div>
+          <button type="button" onClick={this.tryToRestart} className="btn btn-danger">Restart</button>
+        </div>
+        <hr/>
         <ul className="nav nav-tabs">
 
           <li role="presentation" className={this.isActive("server-log")} onClick={this.changeTab}><a data-tab="server-log" href="#">Server-log</a></li>
@@ -41,6 +67,9 @@ var ServerLog = React.createClass({
     return {
       logs: [],
        state:"server-log",
+       update_logs_flag: true,
+       max_index: 1,
+       index: 0,
        action_settings: {
         color_coding: false,
         client_join: false,
@@ -51,38 +80,137 @@ var ServerLog = React.createClass({
         channel_remove: false,
         channel_edit: false,
         regex_search: false,
-        search: ""
+        search: "",
+       },
+       serverchat_settings: {
+
+       },
+       privatechat_settings: {
+
+       },
+       actionlog_settings: {
+
        }
     };
   },
-  loadLogsFromServer: function() {
+  forceLoadLogs : function() {
+    console.log("refreshing everything")
     var url= "";
+    var settings = {};
     if(this.props.state == "server-log"){
       url="/herggubot/api/serverlog";
+      settings = this.state.action_settings;
     }
     if(this.props.state == "serverchat-log"){
       url="/herggubot/api/serverchat";
+      settings = this.state.serverchat_settings;
     }
     if(this.props.state == "privatechat-log"){
       url="/herggubot/api/privatechat";
+      settings = this.state.privatechat_settings;
     }
     if(this.props.state == "action-log"){
       url="/herggubot/api/actionlog";
+      settings = this.state.actionlog_settings;
     }
 
-    $.ajax({
-      url: url,
-      dataType: 'json',
-      cache: false,
-      data: this.state.action_settings,
-      success: function(data) {
-        data.reverse();
-        this.setState({logs: data, action_settings: this.state.action_settings });
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
+    var newLogs = [];
+    var gotten = [];
+    var allValues = [];
+
+    for(var x = 0 ; x <= this.state.max_index; x++){
+      this.state.index = x;
+      settings.index = x;
+      allValues.push(x);
+      $.ajax({
+        url: url,
+        dataType: 'json',
+        cache: false,
+        data: settings,
+        success: function(data) {
+          //console.log("got " + data.index);
+          if(gotten.indexOf(data.index) == -1){
+              gotten.push(parseInt(data.index));
+              //console.log("added to gotten");
+              if(data.logs != undefined){
+                newLogs = newLogs.concat(data.logs);
+                newLogs.sort(function(a,b){
+                  return b.date - a.date;
+                });
+              }
+
+              var success = allValues.every(function(v,i) {
+                return gotten.indexOf(v) !== -1;
+              });
+              //console.log("success=" + success);
+              //console.log(allValues);
+              //console.log(gotten);
+              if(success && data.index >= this.state.max_index){
+                //console.log("new logs in place");
+                var scrolledTo = $(window).scrollTop();
+                this.setState({logs: newLogs, action_settings: this.state.action_settings });
+                /*setTimeout(function(){
+                  $('html, body').animate({
+                    scrollTop: scrolledTo
+                  }, 1);
+                },700); */
+              }
+          }
+        }.bind(this),
+        error: function(xhr, status, err) {
+          console.error(this.props.url, status, err.toString());
+        }.bind(this)
+      });
+    }
+  },
+  loadLogsFromServer: function() {
+    if(this.state.update_logs_flag){
+      console.log("flag set");
+      this.forceLoadLogs();
+      this.state.update_logs_flag = false;
+    }else{
+
+      var url= "";
+      var settings = {};
+      if(this.props.state == "server-log"){
+        url="/herggubot/api/serverlog";
+        settings = this.state.action_settings;
+      }
+      if(this.props.state == "serverchat-log"){
+        url="/herggubot/api/serverchat";
+        settings = this.state.serverchat_settings;
+      }
+      if(this.props.state == "privatechat-log"){
+        url="/herggubot/api/privatechat";
+        settings = this.state.privatechat_settings;
+      }
+      if(this.props.state == "action-log"){
+        url="/herggubot/api/actionlog";
+        settings = this.state.actionlog_settings;
+      }
+
+      this.state.settings.index == 0;
+      $.ajax({
+        url: url,
+        dataType: 'json',
+        cache: false,
+        data: settings,
+        success: function(data) {
+          if(this.state.logs.length > 0){
+            data.logs.reverse();
+            if(this.state.logs[0] != data.logs[0]){
+              //console.log("Different log");
+              this.forceLoadLogs();
+            }else{
+              //console.log("same log");
+            }
+          }
+        }.bind(this),
+        error: function(xhr, status, err) {
+          console.error(this.props.url, status, err.toString());
+        }.bind(this)
+      });
+    }
   },
   formatDate: function(date){
     var day = date.getDate();
@@ -97,7 +225,14 @@ var ServerLog = React.createClass({
   },
   componentDidMount: function() {
     this.loadLogsFromServer();
-    setInterval(this.loadLogsFromServer, 10000);
+    setInterval(this.loadLogsFromServer, 20000);
+
+    setInterval(function(){
+      if($(window).scrollTop() + $(window).height() == $(document).height() && this.state.logs.length != 0) {
+        this.state.max_index++;
+        this.forceLoadLogs();
+      }
+    }.bind(this),2000);
   },
   actionConfigChanged: function(event) {    
     var value = $(event.target)[0].checked;
@@ -122,7 +257,7 @@ var ServerLog = React.createClass({
           inputs[p].checked=true;
         }
       }
-      if($("#search")[0].value == ""){
+      if($("#search")[0] != undefined && $("#search")[0].value == ""){
          $("#search")[0].value = this.state.action_settings.search;
       }
      

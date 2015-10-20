@@ -13,6 +13,10 @@ module.exports = {
         	this.database.all("SELECT * FROM serveractionlog;", function(err,rows){
         		var filteredRows = rows.filter(function(value){
 
+                    if(req.query.index == undefined){
+                        return true;
+                    }
+
         			if(req.query.search != undefined && req.query.search != "" && req.query.regex_search == 'false'){
         				var valueLC = value.text.toLowerCase();
         				var searchLC = req.query.search.toLowerCase();
@@ -61,22 +65,81 @@ module.exports = {
         					return false;
         			}
         		}.bind(this));
-        		res.send(filteredRows);
+                
+                if(req.query.index == undefined){
+                    res.send([]);
+                    return;
+                }
+                var response = {index: req.query.index};
+
+                if(filteredRows.length >= req.query.index + 1*50){
+                    response.logs = filteredRows.splice(filteredRows.length - req.query.index*50,50);
+                    res.send(response);
+                }else if(filteredRows.length >= req.query.index*50){
+                    filteredRows.splice(0,req.query.index*50)
+                    response.logs = filteredRows;
+                    res.send(response);
+                }else{
+                    res.send(response);
+                }
         	});
         }.bind(this));
         app.get("/herggubot/api/serverchat", function(req, res){
         	this.database.all("SELECT * FROM serverchatlog;", function(err,rows){
-        		res.send(rows);
+
+                if(req.query.index == undefined){
+                    res.send([]);
+                    return;
+                }
+                var response = {index: req.query.index};
+                if(rows.length >= req.query.index + 1*50){
+                    response.logs = rows.splice(rows.length - req.query.index*50,50);
+                    res.send(response);
+                }else if(rows.length >= req.query.index*50){
+                    rows.splice(0,req.query.index*50)
+                    response.logs = rows;
+                    res.send(response);
+                }else{
+                    res.send(response);
+                }
         	});
         }.bind(this));
         app.get("/herggubot/api/privatechat", function(req, res){
         	this.database.all("SELECT * FROM privatechatlog;", function(err,rows){
-        		res.send(rows);
+        		if(req.query.index == undefined){
+                    res.send([]);
+                    return;
+                }
+                var response = {index: req.query.index};
+                if(rows.length >= req.query.index + 1*50){
+                    response.logs = rows.splice(rows.length - req.query.index*50,50);
+                    res.send(response);
+                }else if(rows.length >= req.query.index*50){
+                    rows.splice(0,req.query.index*50)
+                    response.logs = rows;
+                    res.send(response);
+                }else{
+                    res.send(response);
+                }
         	});
         }.bind(this));
         app.get("/herggubot/api/actionlog", function(req, res){
         	this.database.all("SELECT * FROM actionlog;", function(err,rows){
-        		res.send(rows);
+        		if(req.query.index == undefined){
+                    res.send([]);
+                    return;
+                }
+                var response = {index: req.query.index};
+                if(rows.length >= req.query.index + 1*50){
+                    response.logs = rows.splice(rows.length - req.query.index*50,50);
+                    res.send(response);
+                }else if(rows.length >= req.query.index*50){
+                    rows.splice(0,req.query.index*50)
+                    response.logs = rows;
+                    res.send(response);
+                }else{
+                    res.send(response);
+                }
         	});
         }.bind(this));
 
