@@ -240,6 +240,7 @@ var ServerLog = React.createClass({
     var field = $(event.target).attr("data-config");
     var newState = this.state;
     newState.action_settings[field] = value;
+    newState.update_logs_flag=true;
     this.setState(newState);
     this.loadLogsFromServer();
 
