@@ -1,10 +1,10 @@
 var config = {};
 
 config.VIRTUAL_SERVER_ID = 1;
-config.TS_IP = "";
+config.TS_IP = "osusearch.com";
 config.DATABASE_PATH = 'botdatabase';
-config.SERVERQUERY_USERNAME = "";
-config.SERVERQUERY_PASSWORD = "";
+config.SERVERQUERY_USERNAME = "Rivenation";
+config.SERVERQUERY_PASSWORD = "GnevPgly";
 config.QUERY_TIME_LIMIT = 1;
 config.NICKNAME = "HerGGuBot";
 config.resetDatabase = false;
