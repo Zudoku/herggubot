@@ -13,6 +13,7 @@ var DashBoard = React.createClass({
   changeTab: function(event){
     this.setState({state: $(event.target).attr("data-tab") },function(){
       this.refs.logs.state.update_logs_flag = true;
+      this.refs.logs.state.max_index = 1;
       this.refs.logs.loadLogsFromServer();
       this.forceUpdate();
     }.bind(this));
