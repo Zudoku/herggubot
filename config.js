@@ -1,12 +1,13 @@
 var config = {};
 
 config.VIRTUAL_SERVER_ID = 1;
-config.TS_IP = "";
+config.TS_IP = "osusearch.com";
 config.DATABASE_PATH = 'botdatabase';
-config.SERVERQUERY_USERNAME = "";
-config.SERVERQUERY_PASSWORD = "";
+config.SERVERQUERY_USERNAME = "Rivenation";
+config.SERVERQUERY_PASSWORD = "GnevPgly";
 config.QUERY_TIME_LIMIT = 1;
 config.NICKNAME = "HerGGuBot";
+config.resetDatabase = false;
 
 config.DEBUG_NETWORK = false;
 config.launchBotOnStartUp = true;
@@ -22,7 +23,7 @@ config.module_monitor_chat = {
 
 config.module_monitor_channel_slots = {
 	enabled: true,
-	channel_delete_time: 5000
+	channel_delete_time: 5
 };
 
 config.module_extra_logs = {
@@ -31,7 +32,7 @@ config.module_extra_logs = {
 
 config.module_web_interface = {
 	enabled: true,
-	port: 80
+	port: 9090
 };
 
 module.exports = config;
