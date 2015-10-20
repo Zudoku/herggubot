@@ -7,7 +7,7 @@ var NavigationBar = React.createClass({
             <ul className="nav navbar-nav">
               <li><a href="/herggubot/">Dashboard</a></li>
               <li><a href="/herggubot/config.html">Configuration</a></li>
-              <li><a href="/herggubot/modules.html">Modules</a></li>
+              <li><a href="/herggubot/modules.html">Module info</a></li>
             </ul>
           </div>
         </div>

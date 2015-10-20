@@ -3,6 +3,8 @@ var app = express();
 var config = require('../../config');
 var util = require('util');
 
+var chunkAmount = 100;
+
 module.exports = {
 	start: function (herggubot) {
         this.database = herggubot.database;
@@ -72,11 +74,11 @@ module.exports = {
                 }
                 var response = {index: req.query.index};
 
-                if(filteredRows.length >= req.query.index + 1*50){
-                    response.logs = filteredRows.splice(filteredRows.length - req.query.index*50,50);
+                if(filteredRows.length >= req.query.index + 1*chunkAmount){
+                    response.logs = filteredRows.splice(filteredRows.length - req.query.index*chunkAmount,chunkAmouchunkAmount);
                     res.send(response);
-                }else if(filteredRows.length >= req.query.index*50){
-                    filteredRows.splice(0,req.query.index*50)
+                }else if(filteredRows.length >= req.query.index*chunkAmount){
+                    filteredRows.splice(0,req.query.index*chunkAmount)
                     response.logs = filteredRows;
                     res.send(response);
                 }else{
@@ -92,11 +94,11 @@ module.exports = {
                     return;
                 }
                 var response = {index: req.query.index};
-                if(rows.length >= req.query.index + 1*50){
-                    response.logs = rows.splice(rows.length - req.query.index*50,50);
+                if(rows.length >= req.query.index + 1*chunkAmount){
+                    response.logs = rows.splice(rows.length - req.query.index*chunkAmount,chunkAmount);
                     res.send(response);
-                }else if(rows.length >= req.query.index*50){
-                    rows.splice(0,req.query.index*50)
+                }else if(rows.length >= req.query.index*chunkAmount){
+                    rows.splice(0,req.query.index*chunkAmount)
                     response.logs = rows;
                     res.send(response);
                 }else{
@@ -111,11 +113,11 @@ module.exports = {
                     return;
                 }
                 var response = {index: req.query.index};
-                if(rows.length >= req.query.index + 1*50){
-                    response.logs = rows.splice(rows.length - req.query.index*50,50);
+                if(rows.length >= req.query.index + 1*chunkAmount){
+                    response.logs = rows.splice(rows.length - req.query.index*chunkAmount,chunkAmount);
                     res.send(response);
-                }else if(rows.length >= req.query.index*50){
-                    rows.splice(0,req.query.index*50)
+                }else if(rows.length >= req.query.index*chunkAmount){
+                    rows.splice(0,req.query.index*chunkAmount)
                     response.logs = rows;
                     res.send(response);
                 }else{
@@ -130,11 +132,11 @@ module.exports = {
                     return;
                 }
                 var response = {index: req.query.index};
-                if(rows.length >= req.query.index + 1*50){
-                    response.logs = rows.splice(rows.length - req.query.index*50,50);
+                if(rows.length >= req.query.index + 1*chunkAmount){
+                    response.logs = rows.splice(rows.length - req.query.index*chunkAmount,chunkAmount);
                     res.send(response);
-                }else if(rows.length >= req.query.index*50){
-                    rows.splice(0,req.query.index*50)
+                }else if(rows.length >= req.query.index*chunkAmount){
+                    rows.splice(0,req.query.index*chunkAmount)
                     response.logs = rows;
                     res.send(response);
                 }else{
