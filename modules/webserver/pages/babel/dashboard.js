@@ -248,6 +248,7 @@ var ServerLog = React.createClass({
   searchChanged: function(event){
     var newState = this.state;
     newState.action_settings.search = event.target.value;
+    newState.update_logs_flag=true;
     this.setState(newState);
     this.loadLogsFromServer();
   },
