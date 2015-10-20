@@ -6,5 +6,5 @@ tmp
 .idea
 db
 .metadata/
-config.js
+./config.js
 botdatabase
