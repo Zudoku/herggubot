@@ -3,7 +3,7 @@ var app = express();
 var config = require('../../config');
 var util = require('util');
 
-var chunkAmount = 100;
+var chunkAmount = 200;
 
 module.exports = {
 	start: function (herggubot) {
@@ -75,7 +75,7 @@ module.exports = {
                 var response = {index: req.query.index};
 
                 if(filteredRows.length >= req.query.index + 1*chunkAmount){
-                    response.logs = filteredRows.splice(filteredRows.length - req.query.index*chunkAmount,chunkAmouchunkAmount);
+                    response.logs = filteredRows.splice(filteredRows.length - req.query.index*chunkAmount,chunkAmount);
                     res.send(response);
                 }else if(filteredRows.length >= req.query.index*chunkAmount){
                     filteredRows.splice(0,req.query.index*chunkAmount)
