@@ -190,7 +190,7 @@ var ServerLog = React.createClass({
         settings = this.state.actionlog_settings;
       }
 
-      this.state.settings.index == 0;
+      settings.index == 0;
       $.ajax({
         url: url,
         dataType: 'json',
