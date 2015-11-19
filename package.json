@@ -2,7 +2,8 @@
   "name": "HerGGuBot",
   "version": "0.1.0",
   "description": "",
-  "author": "name <email>",
+  "author": "Arnold <arttu.siren@gmail.com>",
+  "license" : "SEE LICENSE IN LICENSE (MIT)",
   "contributors": [
     {
       "name": "Rivenation",
@@ -15,10 +16,14 @@
   ],
   "dependencies": {
     "node-teamspeak": "1.0.10",
-    "sqlite3": "2.2.0",
+    "sqlite3": "3.1.1",
     "async": "~1.4.2",
     "react-dom": "~0.14.0",
     "react": "~0.14.0",
     "express": "~4.13.3"
+  },
+  "repository" : {
+    "type" : "git",
+    "url" : "git@bitbucket.org:Arap/herggubot.git"
   }
 }
