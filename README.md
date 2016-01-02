@@ -25,19 +25,78 @@ node start.js
 
 ### monitor-chat ###
 
-TODO:
+A module to prevent spamming in the server chat. Automatically detects spamming and kicks the spammer.
+
+Config
+
+```
+#!Shell
+
+config.module_monitor_chat = {
+	enabled: true, // true|false 
+	spam_message : "Please do not spam the server chat.", //Custom kick-message (String)
+	spam_limit: 4, //How many messages is allowed in a time-span
+	spam_timeframe: 5000 //How long the time-span is (ms)
+};
+```
+
 
 ### monitor-limited-slot-channels ###
 
-TODO:
+A module to maintain public channels that have limited slot property.  Creates new channels when they are being used and deletes the empty unused ones.
+When this is  enabled, create channels ending with 
+```
+#!Shell
+
+(Max. #)
+```
+ where # is the number of max limit of users in the channel. The module automatically detects them and does everything else for you!
+
+Config
+
+```
+#!Shell
+
+config.module_monitor_channel_slots = {
+	enabled: true, // true|false
+	channel_delete_time: 5 //The amount of seconds channel has to be empty before it gets deleted
+};
+```
+
 
 ### extra-logs ###
 
-TODO:
+A module that saves server logs to a database. It listens for events from the Teamspeak server (for example Server edit, channel edit, channel joins, server chat, kicks , bans) and saves them.
+This is recommended if you use web-server module.
+
+Config
+
+
+```
+#!Shell
+
+config.module_extra_logs = {
+	enabled: true // true|false
+};
+```
 
 ### web-server ###
 
-TODO:
+A module that creates a small admin panel where you can browse the logs of the bot. Useful when figuring out who has done harm in the server (kicking people or something)
+Recommended to have extra-logs module enabled. 
+
+Config
+
+
+```
+#!Shell
+
+config.module_web_interface = {
+	enabled: true, // true|false
+	port: 9090 //The port the webserver binds to
+};
+```
+
 
 ### License ###
 
