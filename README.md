@@ -21,7 +21,7 @@ To do a quick run:
 node start.js
 ```
 
-Example config.js
+**Example config.js**
 
 
 ```
