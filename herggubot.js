@@ -1,7 +1,7 @@
 var config = require('./config');
 var ts3api = require('./ts3api');
 var sqlite3 = require('sqlite3').verbose();
-var database = new sqlite3.Database(config.DATABASE_PATH);
+var database = new sqlite3.Database(config.database_path);
 var util = require("util");
 
 var node = this;
@@ -22,7 +22,7 @@ module.exports = {
             webserver.start(this);
             modulesLoaded.push(webserver);
         }
-        if(config.launchBotOnStartUp){
+        if(config.launch_bot_in_startup){
             ts3api.initialize(config,function(){
                 modulesLoaded = this.loadModules();
                 console.log(modulesLoaded.length + " modules loaded!");

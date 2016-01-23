@@ -5,12 +5,12 @@ var util = require('util');
 module.exports = {
 	lastRequestTime: null,
 	initialize: function (config, callback) {
-		this.QUERY_TIME_LIMIT = config.QUERY_TIME_LIMIT;
-		this.__client = new TeamSpeakClient(config.TS_IP);
-    	this.__login(config.SERVERQUERY_USERNAME, config.SERVERQUERY_PASSWORD, function (err) {
+		this.query_time_limit = config.query_time_limit;
+		this.__client = new TeamSpeakClient(config.ts_ip);
+    	this.__login(config.serverquery_username, config.serverquery_password, function (err) {
     		if (err && typeof callback == "function")
     			return callback(err);
-    		this.setNickname(config.NICKNAME, function (err) {
+    		this.setNickname(config.nickname, function (err) {
     			if (err && typeof callback == "function")
     				return callback(err);
     			this.__registerInitialEvents(function (err) {
@@ -19,7 +19,7 @@ module.exports = {
     			});
     		}.bind(this));
     	}.bind(this));
-    	this.DEBUG_NETWORK = config.DEBUG_NETWORK;
+    	this.debug_network = config.debug_network;
 	},
 	setNickname: function (nickname, callback) {
         this.__sendCommand("clientupdate", { client_nickname: nickname }, function (err) {
@@ -114,6 +114,7 @@ module.exports = {
 			return callback(err, res);
 		});
 	},
+	
 	moveManyClients: function (clientIds, targetChannelId, callback) {
 		async.forEach(clientIds, function (id, callback) {
 			this.moveClient(id, targetChannelId, function (err) {
@@ -122,6 +123,12 @@ module.exports = {
 		}.bind(this), function (err) {
 			if (typeof callback == "function")
 				callback(err);
+		});
+	},
+	banClientFromServer: function (clientId, reason,timeBanned, callback) {
+		this.__sendCommand("banclient", { clid: clientId, time: timeBanned, banreason: reason }, function (err, res) {
+			if (typeof callback == "function")
+				return callback(err, res);
 		});
 	},
 	kickClientFromServer: function (clientId, reason, callback) {
@@ -181,7 +188,7 @@ module.exports = {
 		});
 	},
 	__sendCommand: function (command, arguments, callback) {
-		if(this.DEBUG_NETWORK){
+		if(this.debug_network){
 			console.log("SEND: " + command + " " + JSON.stringify(arguments));
 		}
 		this.__client.send(command, arguments, function(err, response, rawResponse) {
@@ -189,7 +196,7 @@ module.exports = {
 		    if (err)
 		    	console.log("Error while sending command: " + command + " Error: " + JSON.stringify(err));
 	        if (typeof callback == "function")
-	        	if(this.DEBUG_NETWORK){
+	        	if(this.debug_network){
 					console.log("RECEIVE: " + util.inspect(response));
 				}
 	        	return callback(err, response);

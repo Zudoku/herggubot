@@ -9,6 +9,13 @@ module.exports = {
 	start: function (herggubot) {
         this.database = herggubot.database;
 
+        app.use("/herggubot/", function(req,res,next){
+            if(config.module_extra_logs.enabled){
+                //herggubot.logAction("Web-server Dashboard accessed by " + req.ip);
+            }
+            next();
+        });
+
         app.use("/herggubot/", express.static(__dirname + '/pages'));
 
         app.get("/herggubot/api/serverlog", function(req, res){
@@ -146,15 +153,15 @@ module.exports = {
         }.bind(this));
 
         app.get("/", function(req, res){
-        	res.send("lol");
+        	res.status(404).end();
         });
 
         app.get("/herggubot/api/config", function(req, res){
         	var safeConfig = require('../../config');
-        	safeConfig.TS_IP = undefined;
-        	safeConfig.DATABASE_PATH = undefined;
-        	safeConfig.SERVERQUERY_USERNAME = undefined;
-        	safeConfig.SERVERQUERY_PASSWORD = undefined;
+        	safeConfig.ts_ip = "CENSORED";
+        	safeConfig.database_path = "CENSORED";
+        	safeConfig.serverquery_username = "CENSORED";
+        	safeConfig.serverquery_password = "CENSORED";
 
         	res.send(JSON.stringify(safeConfig, null, 4));
         }.bind(this));

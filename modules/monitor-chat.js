@@ -22,7 +22,23 @@ module.exports = {
                     if(rows.length >= spamLimit){
                         this.bot.logAction("Client " + data.client_database_id + " has been found guilty of spamming.");
                         //TODO: Check if recently kicked
-                        this.ts3api.kickClientFromServer(clientId,spamKickMessage,function(error,data){});
+                        if(config.module_monitor_chat.ban_punish){
+
+                            this.ts3api.banClientFromServer(clientId,spamKickMessage,config.module_monitor_chat.ban_length,function(error,data){
+                                if(error){
+                                    console.log("Error while trying to ban spammer " + clientId + " Reason: " + error);
+                                    this.bot.logAction("Error while trying to ban spammer " + clientId + " Reason: " + error);
+                                }
+                            });
+                        }else{
+                            this.ts3api.kickClientFromServer(clientId,spamKickMessage,function(error,data){
+                                if(error){
+                                    console.log("Error while trying to kick spammer " + clientId + " Reason: " + error);
+                                    this.bot.logAction("Error while trying to kick spammer " + clientId + " Reason: " + error);
+                                }
+                            });
+                        }
+                        
                     }
                 }.bind(this));
             }
