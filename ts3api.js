@@ -5,9 +5,9 @@ var util = require('util');
 module.exports = {
 	lastRequestTime: null,
 	initialize: function (config, callback) {
-		this.query_time_limit = config.query_time_limit;
+		//this.query_time_limit = config.query_time_limit;
 		this.__client = new TeamSpeakClient(config.ts_ip);
-    	this.__login(config.serverquery_username, config.serverquery_password, function (err) {
+    	this.__login(config.serverquery_username, config.serverquery_password,config.virtual_server_id, function (err) {
     		if (err && typeof callback == "function")
     			return callback(err);
     		this.setNickname(config.nickname, function (err) {
@@ -147,11 +147,11 @@ module.exports = {
 			return callback(err, res);
 		});
 	},
-	__login: function (username, password, callback) {
+	__login: function (username, password,vsId, callback) {
 		this.__sendCommand("login", { client_login_name: username, client_login_password: password }, function (err) {
 			if (err && typeof callback == "function")
 				return callback(err);
-			this.__sendCommand("use", { sid: 1 }, function (err) {
+			this.__sendCommand("use", { sid: vsId }, function (err) {
 				if (typeof callback == "function")
 					return callback(err);
 			});
