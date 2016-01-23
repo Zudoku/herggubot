@@ -1,5 +1,6 @@
 var config = require('../config');
 var spamKickMessage = config.module_monitor_chat.spam_message;
+var util = require('util');
 
 module.exports = {
     start: function (herggubot) {
