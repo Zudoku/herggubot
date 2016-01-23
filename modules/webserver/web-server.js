@@ -74,23 +74,19 @@ module.exports = {
         					return false;
         			}
         		}.bind(this));
+
+                filteredRows.sort(function(a,b){
+                    return b.date - a.date;
+                });
                 
                 if(req.query.index == undefined){
                     res.send([]);
                     return;
                 }
                 var response = {index: req.query.index};
+                response.logs = filteredRows.splice(req.query.index * chunkAmount , chunkAmount);
+                res.send(response);
 
-                if(filteredRows.length >= req.query.index + 1*chunkAmount){
-                    response.logs = filteredRows.splice(filteredRows.length - req.query.index*chunkAmount,chunkAmount);
-                    res.send(response);
-                }else if(filteredRows.length >= req.query.index*chunkAmount){
-                    filteredRows.splice(0,req.query.index*chunkAmount)
-                    response.logs = filteredRows;
-                    res.send(response);
-                }else{
-                    res.send(response);
-                }
         	});
         }.bind(this));
         app.get("/herggubot/api/serverchat", function(req, res){
@@ -101,16 +97,11 @@ module.exports = {
                     return;
                 }
                 var response = {index: req.query.index};
-                if(rows.length >= req.query.index + 1*chunkAmount){
-                    response.logs = rows.splice(rows.length - req.query.index*chunkAmount,chunkAmount);
-                    res.send(response);
-                }else if(rows.length >= req.query.index*chunkAmount){
-                    rows.splice(0,req.query.index*chunkAmount)
-                    response.logs = rows;
-                    res.send(response);
-                }else{
-                    res.send(response);
-                }
+                rows.sort(function(a,b){
+                    return b.date - a.date;
+                });
+                response.logs = rows.splice(req.query.index * chunkAmount , chunkAmount);
+                res.send(response);
         	});
         }.bind(this));
         app.get("/herggubot/api/privatechat", function(req, res){
@@ -120,16 +111,12 @@ module.exports = {
                     return;
                 }
                 var response = {index: req.query.index};
-                if(rows.length >= req.query.index + 1*chunkAmount){
-                    response.logs = rows.splice(rows.length - req.query.index*chunkAmount,chunkAmount);
-                    res.send(response);
-                }else if(rows.length >= req.query.index*chunkAmount){
-                    rows.splice(0,req.query.index*chunkAmount)
-                    response.logs = rows;
-                    res.send(response);
-                }else{
-                    res.send(response);
-                }
+
+                rows.sort(function(a,b){
+                    return b.date - a.date;
+                });
+                response.logs = rows.splice(req.query.index * chunkAmount , chunkAmount);
+                res.send(response);
         	});
         }.bind(this));
         app.get("/herggubot/api/actionlog", function(req, res){
@@ -139,16 +126,11 @@ module.exports = {
                     return;
                 }
                 var response = {index: req.query.index};
-                if(rows.length >= req.query.index + 1*chunkAmount){
-                    response.logs = rows.splice(rows.length - req.query.index*chunkAmount,chunkAmount);
-                    res.send(response);
-                }else if(rows.length >= req.query.index*chunkAmount){
-                    rows.splice(0,req.query.index*chunkAmount)
-                    response.logs = rows;
-                    res.send(response);
-                }else{
-                    res.send(response);
-                }
+                rows.sort(function(a,b){
+                    return b.date - a.date;
+                });
+                response.logs = rows.splice(req.query.index * chunkAmount , chunkAmount);
+                res.send(response);
         	});
         }.bind(this));
 
