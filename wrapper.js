@@ -7,8 +7,9 @@ function spawnBot(){
 	bot.stderr.pipe(process.stderr);
 
 	bot.on('close', function (code, signal) {
-  		console.log('Bot exited with signal ' + signal + ' Restarting bot in 10 mins!');
-  		setTimeout(spawnBot,10 * 1000 * 60);
+		var config = require('./config');
+  		console.log('Bot exited with signal ' + signal + ' Restarting bot in ' + config.wrapper_restart_time + ' mins!');
+  		setTimeout(spawnBot,config.wrapper_restart_time * 1000 * 60);
 	});	
 }
 
