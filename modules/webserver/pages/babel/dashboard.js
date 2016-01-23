@@ -12,8 +12,7 @@ var DashBoard = React.createClass({
   },
   changeTab: function(event){
     this.setState({state: $(event.target).attr("data-tab") },function(){
-      this.refs.logs.state.update_logs_flag = true;
-      this.refs.logs.state.max_index = 1;
+      this.refs.logs.state.reset_logs_flag = true;
       this.refs.logs.loadLogsFromServer();
       this.forceUpdate();
     }.bind(this));
@@ -44,7 +43,7 @@ var DashBoard = React.createClass({
     return (
       <div>
         <div>
-          <button type="button" onClick={this.tryToRestart} className="btn btn-danger">Restart</button>
+          <button type="button" onClick={this.tryToRestart} className="btn btn-danger">Restart Bot</button>
         </div>
         <hr/>
         <ul className="nav nav-tabs">
@@ -68,8 +67,7 @@ var ServerLog = React.createClass({
     return {
       logs: [],
        state:"server-log",
-       update_logs_flag: true,
-       max_index: 1,
+       reset_logs_flag: true,
        index: 0,
        action_settings: {
         color_coding: false,
@@ -94,8 +92,22 @@ var ServerLog = React.createClass({
        }
     };
   },
-  forceLoadLogs : function() {
-    console.log("refreshing everything")
+  forceWipeLogs : function(){
+    var currentState =  this.state;
+    currentState.logs = [];
+    currentState.index = 0;
+    currentState.reset_logs_flag = false;
+    this.setState(currentState);
+    this.forceLoadNewLogs();
+  },
+  moreLogsPress : function(event) {
+    var currentState =  this.state;
+    currentState.index++;
+    this.setState(currentState);
+    this.forceLoadNewLogs();
+  },
+  forceLoadNewLogs : function() {
+    console.log("Loading new logs, Index = " + this.state.index)
     var url= "";
     var settings = {};
     if(this.props.state == "server-log"){
@@ -114,103 +126,38 @@ var ServerLog = React.createClass({
       url="/herggubot/api/actionlog";
       settings = this.state.actionlog_settings;
     }
+    settings.index = this.state.index;
 
     var newLogs = [];
-    var gotten = [];
     var allValues = [];
-
-    for(var x = 0 ; x <= this.state.max_index; x++){
-      this.state.index = x;
-      settings.index = x;
-      allValues.push(x);
-      $.ajax({
+    $.ajax({
         url: url,
         dataType: 'json',
         cache: false,
         data: settings,
         success: function(data) {
-          //console.log("got " + data.index);
-          if(gotten.indexOf(data.index) == -1){
-              gotten.push(parseInt(data.index));
-              //console.log("added to gotten");
-              if(data.logs != undefined){
-                newLogs = newLogs.concat(data.logs);
-                newLogs.sort(function(a,b){
-                  return b.date - a.date;
-                });
-              }
+          console.log(data);
 
-              var success = allValues.every(function(v,i) {
-                return gotten.indexOf(v) !== -1;
-              });
-              //console.log("success=" + success);
-              //console.log(allValues);
-              //console.log(gotten);
-              if(success && data.index >= this.state.max_index){
-                //console.log("new logs in place");
-                var scrolledTo = $(window).scrollTop();
-                this.setState({logs: newLogs, action_settings: this.state.action_settings });
-                /*setTimeout(function(){
-                  $('html, body').animate({
-                    scrollTop: scrolledTo
-                  }, 1);
-                },700); */
-              }
+          if(data.logs != undefined){
+            var newLogs = this.state.logs.concat(data.logs);
+            newLogs.sort(function(a,b){
+              return b.date - a.date;
+            });
+            //var scrolledTo = $(window).scrollTop();
+            this.setState({logs: newLogs, action_settings: this.state.action_settings });
           }
         }.bind(this),
         error: function(xhr, status, err) {
           console.error(this.props.url, status, err.toString());
         }.bind(this)
-      });
-    }
+    });
   },
   loadLogsFromServer: function() {
-    if(this.state.update_logs_flag){
-      console.log("flag set");
-      this.forceLoadLogs();
-      this.state.update_logs_flag = false;
+    if(this.state.reset_logs_flag){
+      this.forceWipeLogs();
+      this.state.reset_logs_flag = false;
     }else{
-
-      var url= "";
-      var settings = {};
-      if(this.props.state == "server-log"){
-        url="/herggubot/api/serverlog";
-        settings = this.state.action_settings;
-      }
-      if(this.props.state == "serverchat-log"){
-        url="/herggubot/api/serverchat";
-        settings = this.state.serverchat_settings;
-      }
-      if(this.props.state == "privatechat-log"){
-        url="/herggubot/api/privatechat";
-        settings = this.state.privatechat_settings;
-      }
-      if(this.props.state == "action-log"){
-        url="/herggubot/api/actionlog";
-        settings = this.state.actionlog_settings;
-      }
-
-      settings.index == 0;
-      $.ajax({
-        url: url,
-        dataType: 'json',
-        cache: false,
-        data: settings,
-        success: function(data) {
-          if(this.state.logs.length > 0){
-            data.logs.reverse();
-            if(this.state.logs[0] != data.logs[0]){
-              //console.log("Different log");
-              this.forceLoadLogs();
-            }else{
-              //console.log("same log");
-            }
-          }
-        }.bind(this),
-        error: function(xhr, status, err) {
-          console.error(this.props.url, status, err.toString());
-        }.bind(this)
-      });
+      //Kappa
     }
   },
   formatDate: function(date){
@@ -226,21 +173,13 @@ var ServerLog = React.createClass({
   },
   componentDidMount: function() {
     this.loadLogsFromServer();
-    setInterval(this.loadLogsFromServer, 20000);
-
-    setInterval(function(){
-      if($(window).scrollTop() + $(window).height() == $(document).height() && this.state.logs.length != 0) {
-        this.state.max_index++;
-        this.forceLoadLogs();
-      }
-    }.bind(this),2000);
   },
   actionConfigChanged: function(event) {    
     var value = $(event.target)[0].checked;
     var field = $(event.target).attr("data-config");
     var newState = this.state;
     newState.action_settings[field] = value;
-    newState.update_logs_flag=true;
+    newState.reset_logs_flag=true;
     this.setState(newState);
     this.loadLogsFromServer();
 
@@ -248,7 +187,7 @@ var ServerLog = React.createClass({
   searchChanged: function(event){
     var newState = this.state;
     newState.action_settings.search = event.target.value;
-    newState.update_logs_flag=true;
+    newState.reset_logs_flag=true;
     this.setState(newState);
     this.loadLogsFromServer();
   },
@@ -270,6 +209,11 @@ var ServerLog = React.createClass({
       if(this.props.state=="server-log"){
         return (
             <div className="serverLog">
+              <hr/>
+              <div>
+                <button type="button" onClick={this.forceWipeLogs} className="btn btn-danger">Reload logs</button>
+              </div>
+              <hr/>
               <div className="row">
                 <div className="col-md-4"><h3>Filters</h3></div>
                 <div className="col-md-4"></div>
@@ -379,11 +323,21 @@ var ServerLog = React.createClass({
                   }
                 </tbody>
               </table>
+              <div className="row">
+                <div className="col-md-4"></div>
+                <div className="col-md-4"><a onClick={this.moreLogsPress} >Load more</a></div>
+                <div className="col-md-4"></div>
+              </div>
             </div>
             );
       }else if(this.props.state == "serverchat-log" || this.props.state =="privatechat-log"){
         return (
             <div className="serverChatLog">
+              <hr/>
+              <div>
+                <button type="button" onClick={this.forceWipeLogs} className="btn btn-danger">Reload logs</button>
+              </div>
+              <hr/>
               <table className="table">
                 <thead>
                   <tr>
@@ -406,12 +360,22 @@ var ServerLog = React.createClass({
                   }
                 </tbody>
               </table>
+              <div className="row">
+                <div className="col-md-4"></div>
+                <div className="col-md-4"><a onClick={this.moreLogsPress} >Load more</a></div>
+                <div className="col-md-4"></div>
+              </div>
             </div>
         );
       }
       else if(this.props.state == "action-log"){
         return (
             <div className="actionLog">
+              <hr/>
+              <div>
+                <button type="button" onClick={this.forceWipeLogs} className="btn btn-danger">Reload logs</button>
+              </div>
+              <hr/>
               <table className="table">
                 <thead>
                   <tr>
@@ -432,6 +396,11 @@ var ServerLog = React.createClass({
                   }
                 </tbody>
               </table>
+              <div className="row">
+                <div className="col-md-4"></div>
+                <div className="col-md-4"><a onClick={this.moreLogsPress} >Load more</a></div>
+                <div className="col-md-4"></div>
+              </div>
             </div>
         );
       }
