@@ -1,5 +1,13 @@
 # HerGGuBot #
 
+
+```
+#!Shell
+
+Version: 0.1.1
+```
+
+
 Module based Node.js TeamSpeak 3 bot. It utilizes TeamSpeaks own ServerQuery API and is fully configurable. 
 
 ###Install###
@@ -11,9 +19,7 @@ Run this oneliner to install:
 git clone https://bitbucket.org/Arap/herggubot.git; cd herggubot; npm install 
 ```
 
-Then, edit the configuration file **config.js**
-
-To do a quick run:
+To run the bot:
 
 ```
 #!shell
@@ -21,31 +27,42 @@ To do a quick run:
 node start.js
 ```
 
+To make the bot restart on crash:
+
+```
+#!shell
+
+node wrapper.js
+```
+
 **Example config.js**
 
 
 ```
 #!Shell
-
 var config = {};
 
-config.VIRTUAL_SERVER_ID = 1;
-config.TS_IP = "mytsdomain.com";
-config.DATABASE_PATH = 'botdatabase';
-config.SERVERQUERY_USERNAME = "ExampleUsername";
-config.SERVERQUERY_PASSWORD = "ExamplePassword";
-config.QUERY_TIME_LIMIT = 1;
-config.NICKNAME = "HerGGuBot";
-config.resetDatabase = false;
+config.virtual_server_id = 1; 
+config.ts_ip = "ExampleTSIP";
+config.serverquery_username = "ExampleUsername";
+config.serverquery_password = "ExamplePassword";
 
-config.DEBUG_NETWORK = false;
-config.launchBotOnStartUp = true;
+config.nickname = "HerGGuBot";
+
+config.reset_database = false;
+config.database_path = "botdatabase";
+config.debug_network = false;
+config.wrapper_restart_time = 10;
+
+config.launch_bot_in_startup = true;
 //------------------------------------
 // MODULES
 //------------------------------------
 config.module_monitor_chat = {
 	enabled: true,
 	spam_message : "Please do not spam the server chat.",
+	ban_punish: true,
+	ban_length: 60,
 	spam_limit: 4,
 	spam_timeframe: 5000
 };
@@ -67,12 +84,110 @@ config.module_web_interface = {
 module.exports = config;
 ```
 
+# Config.js #
+
+## Configuration ##
+
+**config.virtual_server_id**
+
+If there are more than 1 virtual server in the Teamspeak server you are in, you might need to change this to the specific one you want the bot to use.
+```
+#!Shell
+
+config.virtual_server_id = 1 // integer
+```
+
+
+**config.ts_ip**
+
+This should be the TeamSpeak servers IP address / domain-name 
+```
+#!Shell
+
+config.ts_ip = "ExampleTSIP"; // String
+```
+
+
+**config.serverquery_username**
+
+This should be the ServerQuery account username. If you don't know how to make a serverquery account, [this](http://forum.teamspeak.com/threads/53364-How-can-I-add-a-ServerQuery-User) might help 
+```
+#!Shell
+
+config.serverquery_username = "ExampleUsername"; // String
+```
+
+
+**config.serverquery_password**
+
+This should be the ServerQuery account password. If you don't know how to make a serverquery account, [this](http://forum.teamspeak.com/threads/53364-How-can-I-add-a-ServerQuery-User) might help 
+```
+#!Shell
+
+config.serverquery_password = "ExamplePassword"; // String
+```
+
+**config.nickname**
+
+The bot will change its visible name to this one after it has connected to the channel. Can be anything, however if an user is present with the same name, it will continue to use the original serverquery login name (Or the teamspeak server will give it its own random name )
+```
+#!Shell
+
+config.nickname = "HerGGuBot"; // String
+```
+
+**config.reset_database**
+
+If the bot should reset the database every time it is launched (BE CAREFUL WITH THIS ONE) This can be used to reset the bots database: 
+
+First close the bot, edit config.reset_database to true and start the server, once it has started, close it down again and edit config.reset_database back to false.
+```
+#!Shell
+
+config.reset_database = false; // true|false
+```
+
+**config.database_path**
+
+The SQLite database filepath. Default is **"botdatabase"**
+```
+#!Shell
+
+config.database_path = "botdatabase"; //String
+```
+
+**config.debug_network**
+
+If set to true, it will print to console every packet coming in and out. Set to false in production.
+```
+#!Shell
+
+config.debug_network = false; // true|false
+```
+
+**config.wrapper_restart_time**
+
+When bot crashes while using wrapper.js the bot will get restarted in *config.wrapper_restart_time* minutes
+```
+#!Shell
+
+config.wrapper_restart_time = 10; // number (minutes)
+```
+
+**config.launch_bot_in_startup**
+
+If this is set to false, It will only try to reset database (if config.reset_database=true) and start the webserver (if config.module_web_interface.enabled=true)
+```
+#!Shell
+
+config.launch_bot_in_startup = true; // true|false
+```
 
 ## Modules ##
 
 ### monitor-chat ###
 
-A module to prevent spamming in the server chat. Automatically detects spamming and kicks the spammer.
+A module to prevent spamming in the server chat. Automatically detects spamming and kicks or bans the spammer.
 
 Config
 
@@ -82,6 +197,8 @@ Config
 config.module_monitor_chat = {
 	enabled: true, // true|false 
 	spam_message : "Please do not spam the server chat.", //Custom kick-message (String)
+	ban_punish: true, //true|false  true = ban false=kick
+	ban_length: 60, //Ban time in minutes
 	spam_limit: 4, //How many messages is allowed in a time-span
 	spam_timeframe: 5000 //How long the time-span is (ms)
 };
@@ -97,7 +214,15 @@ When this is  enabled, create channels ending with
 
 (Max. #)
 ```
- where # is the number of max limit of users in the channel. The module automatically detects them and does everything else for you!
+where # is the number of max limit of users in the channel. The module automatically detects them and does everything else for you!
+
+Example channels:
+
+![examplechannels.png](https://bitbucket.org/repo/5G659X/images/2375189037-examplechannels.png)
+
+Module working:
+
+![channelsinuse.png](https://bitbucket.org/repo/5G659X/images/1580754854-channelsinuse.png)
 
 Config
 
