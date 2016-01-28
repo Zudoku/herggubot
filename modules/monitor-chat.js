@@ -50,14 +50,39 @@ module.exports = {
         this.ts3api.registerListener("textmessage",function(data){
             switch(data.targetmode){
                 case 3: //Server chat
-                    if(config.DEBUG_NETWORK){
+                    if(config.debug_network){
                         console.log("SERVER CHAT: " + data.invokername + " : " + data.msg);
                     }
+                    switch(data.msg){
+
+                        case "!whoami":
+
+                            if(config.tessu_stats_integration.enabled){
+                                this.ts3api.getClientById(data.invokerid,function(error,clientData){
+                                    if(error){
+                                        console.log("Failed to check databaseid for client " + data.invokerid + " Error: " + util.inspect(error));
+                                    }else{
+                                        var tessustats_url = "[url=" + config.tessu_stats_integration.site_root + "#/User/" + clientData.client_database_id + "]Here you go![/url]";
+                                        this.ts3api.sendServerMessage(tessustats_url,function(error,response){
+                                            if(error){
+                                                console.log("Failed to send server message. Error: " + util.inspect(error));
+                                            }else{
+
+                                            }
+                                        }.bind(this));
+                                    }
+                                }.bind(this));
+                            }
+
+                        break;
+                    }
+                    
+
                     this.bot.logServerChat(data.invokerid,data.msg,data.invokername);
                     this.checkIfSpamming(data.invokerid);
                 break;
                 case 1: //Private chat'
-                    if(config.DEBUG_NETWORK){
+                    if(config.debug_network){
                         console.log("PRIVATE CHAT: " + data.invokername + " : " + data.msg);
                     }
                     this.bot.logPrivateChat(data.invokerid,data.msg,data.invokername);
@@ -67,7 +92,8 @@ module.exports = {
     },
     share : function() {
         var object = {
-            module: "monitor-chat"
+            module: "monitor-chat",
+            spamMessage: spamKickMessage
         };
         return object;
     }
