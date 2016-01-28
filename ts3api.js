@@ -20,6 +20,7 @@ module.exports = {
     		}.bind(this));
     	}.bind(this));
     	this.debug_network = config.debug_network;
+    	this.config.virtual_server_id = config.config.virtual_server_id;
 	},
 	setNickname: function (nickname, callback) {
         this.__sendCommand("clientupdate", { client_nickname: nickname }, function (err) {
@@ -39,6 +40,12 @@ module.exports = {
 	},
 	sendClientMessage: function (targetClientId, message, callback) {
 		this.__sendCommand("sendtextmessage", { targetmode: 1, target: targetClientId, msg: message }, function (err, res) {
+			if (typeof callback == "function")
+				return callback(err, res);
+		});
+	},
+	sendServerMessage: function (message, callback) {
+		this.__sendCommand("sendtextmessage", { targetmode: 3, target: this.config.virtual_server_id, msg: message }, function (err, res) {
 			if (typeof callback == "function")
 				return callback(err, res);
 		});
