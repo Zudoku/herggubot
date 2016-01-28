@@ -20,7 +20,7 @@ module.exports = {
     		}.bind(this));
     	}.bind(this));
     	this.debug_network = config.debug_network;
-    	this.config.virtual_server_id = config.virtual_server_id;
+    	this.virtual_server_id = config.virtual_server_id;
 	},
 	setNickname: function (nickname, callback) {
         this.__sendCommand("clientupdate", { client_nickname: nickname }, function (err) {
