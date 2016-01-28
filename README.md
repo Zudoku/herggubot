@@ -31,6 +31,7 @@ git clone https://bitbucket.org/Arap/herggubot.git; cd herggubot;
 docker build  -t herggu/herggubot . 
 ```
 
+###Run###
 To run the bot:
 
 ```
