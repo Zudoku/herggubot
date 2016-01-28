@@ -19,6 +19,17 @@ Run this oneliner to install:
 git clone https://bitbucket.org/Arap/herggubot.git; cd herggubot; npm install 
 ```
 
+####Installing with Docker####
+[What is Docker?](https://docs.docker.com/)
+Working DockerFile is provided with the repository:
+```
+#!shell
+
+git clone https://bitbucket.org/Arap/herggubot.git; cd herggubot;
+
+docker build  -t herggu/herggubot . 
+```
+
 To run the bot:
 
 ```
