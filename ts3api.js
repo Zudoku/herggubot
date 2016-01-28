@@ -45,7 +45,7 @@ module.exports = {
 		});
 	},
 	sendServerMessage: function (message, callback) {
-		this.__sendCommand("sendtextmessage", { targetmode: 3, target: this.config.virtual_server_id, msg: message }, function (err, res) {
+		this.__sendCommand("sendtextmessage", { targetmode: 3, target: this.virtual_server_id, msg: message }, function (err, res) {
 			if (typeof callback == "function")
 				return callback(err, res);
 		});
