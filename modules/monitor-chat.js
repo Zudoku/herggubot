@@ -62,7 +62,7 @@ module.exports = {
                                     if(error){
                                         console.log("Failed to check databaseid for client " + data.invokerid + " Error: " + util.inspect(error));
                                     }else{
-                                        var tessustats_url = "[url=" + config.tessu_stats_integration.site_root + "#/User/" + clientData.client_database_id + "]Here you go![/url]";
+                                        var tessustats_url = "[url=" + config.tessu_stats_integration.site_root + "#/user/" + clientData.client_database_id + "]Here you go![/url]";
                                         this.ts3api.sendServerMessage(tessustats_url,function(error,response){
                                             if(error){
                                                 console.log("Failed to send server message. Error: " + util.inspect(error));
