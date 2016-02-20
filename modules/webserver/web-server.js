@@ -5,6 +5,7 @@ var util = require('util');
 
 var chunkAmount = 200;
 
+
 module.exports = {
 	start: function (herggubot) {
         this.database = herggubot.database;
@@ -149,11 +150,16 @@ module.exports = {
         }.bind(this));
 
         app.get("/herggubot/api/modules", function(req, res){
+            var response = [{
+                botRunningSince : herggubot.botStarted
+
+            }];
+
         	var modulemap = herggubot.modulesLoaded.map(function(obj){
         		return obj.share();
         	});
-
-        	res.send(JSON.stringify(modulemap, null, 4));
+            response = response.concat(modulemap);
+        	res.send(JSON.stringify(response, null, 4));
         }.bind(this));
 
         app.listen(config.module_web_interface.port);

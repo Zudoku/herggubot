@@ -12,6 +12,7 @@ module.exports = {
     database : database,
     node: node,
     modulesLoaded : modulesLoaded,
+    botStarted : new Date(),
     launch : function(callback){
 
         if(config.resetDatabase){
