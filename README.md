@@ -206,6 +206,7 @@ config.launch_bot_in_startup = true; // true|false
 ### monitor-chat ###
 
 A module to prevent spamming in the server chat. Automatically detects spamming and kicks or bans the spammer.
+This module also logs the server and private chat and needs to be enabled for text commands used by other modules.
 
 Config
 
@@ -287,6 +288,22 @@ config.module_web_interface = {
 };
 ```
 
+### TessuStats integration ###
+
+A module that enables [TessuStats](https://bitbucket.org/Arap/tessustats) integration by introducing !whoami command. The bot responds with a link to their profile in a TessuStats domain provided in the config.
+*NEEDS monitor-chat MODULE TO BE ENABLED TO WORK* 
+
+Config
+
+
+```
+#!Shell
+
+config.tessu_stats_integration = {
+	enabled: true,
+	site_root: "http://tessustats.ovh/app/"   //your domain where your tessustats is exposed to the internet (can also be ip address)
+};
+```
 
 ### License ###
 
