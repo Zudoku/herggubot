@@ -291,7 +291,8 @@ config.module_web_interface = {
 ### TessuStats integration ###
 
 A module that enables [TessuStats](https://bitbucket.org/Arap/tessustats) integration by introducing !whoami command. The bot responds with a link to their profile in a TessuStats domain provided in the config.
-*NEEDS monitor-chat MODULE TO BE ENABLED TO WORK* 
+
+**NEEDS monitor-chat MODULE TO BE ENABLED TO WORK**
 
 Config
 
