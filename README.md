@@ -80,6 +80,11 @@ config.module_monitor_chat = {
 	spam_timeframe: 5000
 };
 
+config.tessu_stats_integration = {
+        enabled: true,
+        site_root: "yourtessustatsdomain.com/"
+};
+
 config.module_monitor_channel_slots = {
 	enabled: true,
 	channel_delete_time: 5
