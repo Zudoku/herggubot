@@ -333,3 +333,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
+
+
+### Library documentation and help for developing ###
+
+[node-sqlite3](https://github.com/mapbox/node-sqlite3/wiki/API)
+
+[node-teamspeak](https://www.npmjs.com/package/node-teamspeak)
+
+[Serverquery pdf](http://media.teamspeak.com/ts3_literature/TeamSpeak%203%20Server%20Query%20Manual.pdf)
