@@ -14,6 +14,7 @@ module.exports = {
     modulesLoaded : modulesLoaded,
     launch : function(callback){
 
+
         if(config.resetDatabase){
             this.resetDatabase();
         }
@@ -26,9 +27,12 @@ module.exports = {
             ts3api.initialize(config,function(){
                 modulesLoaded = this.loadModules();
                 console.log(modulesLoaded.length + " modules loaded!");
-                callback();
+                /*ts3api.getClientById(67, function (x,y) {
+                    console.log(y);
+                })*/
+              callback();
             }.bind(this));
-        } 
+        }
     },
     loadModules : function(){
         if(config.module_monitor_chat.enabled){
@@ -102,6 +106,7 @@ module.exports = {
 	        "DROP TABLE IF EXISTS privatechatlog;",
 	        "DROP TABLE IF EXISTS actionlog;",
             "DROP TABLE IF EXISTS serveractionlog;",
+            "DROP TABLE IF EXISTS mutedusers;",
 
 	        "CREATE TABLE ignorelist",
 	        "(",
@@ -136,6 +141,13 @@ module.exports = {
             "date datetime,",
             "text TEXT,",
             "actiontype TEXT",
+            ");",
+
+            "CREATE TABLE mutedusers",
+            "(",
+            "expires datetime,",
+            "databaseid INTEGER,",
+            "username TEXT",
             ");"
 		];
         database.exec(sql.join(""));

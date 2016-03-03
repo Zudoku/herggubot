@@ -34,6 +34,7 @@ module.exports = {
 	registerEvent: function (event, arguments, callback) {
 		arguments["event"] = event;
 		this.__sendCommand("servernotifyregister", arguments, function (err) {
+			console.log()
 			if (typeof callback == "function")
 				callback(err);
 		});
@@ -58,6 +59,12 @@ module.exports = {
 				return client.cid == channelId
 			});
 			callback(null, targetClients);
+		});
+	},
+	getClientsOnline: function (callback) {
+		this.__sendCommand("clientlist", {}, function (err, res) {
+			var results = res.constructor == Array ? res : [res];
+			return callback(err, results);
 		});
 	},
 	getChannelsByName: function (channelName, callback) {
@@ -121,7 +128,6 @@ module.exports = {
 			return callback(err, res);
 		});
 	},
-	
 	moveManyClients: function (clientIds, targetChannelId, callback) {
 		async.forEach(clientIds, function (id, callback) {
 			this.moveClient(id, targetChannelId, function (err) {
@@ -149,10 +155,32 @@ module.exports = {
 			return callback(err, res);
 		});
 	},
-	getClientsByName: function (clientName, callback) {
-		this.__sendCommand("clientfind", { pattern: clientName }, function (err, res) {
+	//Not as much info as getClientById
+	getClientByDbId: function (clientDbId, callback) {
+		this.__sendCommand("clientgetnamefromdbid", { cldbid: clientDbId }, function (err, res) {
 			return callback(err, res);
 		});
+	},
+	getClientsByName: function (clientName, callback) {
+		this.__sendCommand("clientfind", { pattern: clientName }, function (err, res) {
+			var results = res.constructor == Array ? res : [res];
+			return callback(err, results);
+		});
+	},
+	getServerGroups: function (callback) {
+		this.__sendCommand("servergrouplist", {}, function (err, res) {
+			return callback(err, res);
+		});
+	},
+	addClientServerGroup: function (clientDbId, groupId, callback) {
+		this.__sendCommand("servergroupaddclient", { sgid: groupId, cldbid: clientDbId }, function (err, res) {
+			return callback(err, res);
+		}.bind(this));
+	},
+	removeClientServerGroup: function (clientDbId, groupID, callback) {
+		this.__sendCommand("servergroupdelclient", { sgid: groupID, cldbid: clientDbId }, function (err, res) {
+			return callback(err, res);
+		}.bind(this));
 	},
 	__login: function (username, password,vsId, callback) {
 		this.__sendCommand("login", { client_login_name: username, client_login_password: password }, function (err) {
