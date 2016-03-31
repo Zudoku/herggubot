@@ -195,13 +195,18 @@ module.exports = {
     },
     checkExpiredMutes: function () {
         this.getMutedUsers(function (err, entries) {
-            entries.forEach(function (entry) {
+            if(err){
+
+            } else {
+                entries.forEach(function (entry) {
                 var d = new Date(entry.expires);
                 if (d.getTime() - new Date().getTime() <= 0)
                     this.unMuteUser(entry.databaseid, function (err) {
                         if (err) console.log(err);
                     });
-            }.bind(this));
+                }.bind(this));
+            }
+            
             setTimeout(function () {
                 this.checkExpiredMutes();
             }.bind(this), 500);

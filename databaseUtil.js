@@ -11,6 +11,7 @@ module.exports = {
 	        "DROP TABLE IF EXISTS actionlog;",
             "DROP TABLE IF EXISTS serveractionlog;",
             "DROP TABLE IF EXISTS errorlog;",
+            "DROP TABLE IF EXISTS mutedusers;",
 
 	        "CREATE TABLE ignorelist",
 	        "(",
@@ -52,7 +53,13 @@ module.exports = {
 			"date datetime,",
 			"errormessage TEXT,",
 			"reporter TEXT",
-			");"
+			");",
+
+			"CREATE TABLE mutedusers",
+            "(",
+            "expires datetime,",
+            "databaseid INTEGER,",
+            "username TEXT",
 		];
         database.exec(sql.join(""));
     },

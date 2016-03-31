@@ -4,6 +4,7 @@ DROP TABLE IF EXISTS privatechatlog;
 DROP TABLE IF EXISTS actionlog;
 DROP TABLE IF EXISTS serveractionlog;
 DROP TABLE IF EXISTS errorlog;
+DROP TABLE IF EXISTS mutedusers;
 
 CREATE TABLE ignorelist
 (
@@ -45,4 +46,11 @@ CREATE TABLE errorlog
 date datetime,
 errormessage TEXT,
 reporter TEXT
+);
+
+CREATE TABLE mutedusers
+(
+expires datetime,
+databaseid INTEGER,
+username TEXT
 );
