@@ -7,6 +7,26 @@ var util = require("util");
 var node = this;
 var modulesLoaded = [];
 
+function updateBotSituation(){
+
+    var modulemap = modulesLoaded.map(function(obj){
+        return obj.share();
+    });
+
+
+    var botInfo = {
+        started : module.exports.botStarted,
+        uptime : process.uptime(),
+        pid : process.pid,
+        memoryUsage : process.memoryUsage(),
+        modulesLoaded : modulemap
+    };
+
+    process.send({msg : "readonlybot" , botInfo : botInfo});
+    setTimeout(updateBotSituation, 1000);
+}
+
+
 module.exports = {
     ts3api : ts3api,
     database : database,
@@ -18,18 +38,15 @@ module.exports = {
         if(config.resetDatabase){
             this.resetDatabase();
         }
-        if(config.module_web_interface){
-            var webserver = require('./modules/webserver/web-server');
-            webserver.start(this);
-            modulesLoaded.push(webserver);
-        }
-        if(config.launch_bot_in_startup){
-            ts3api.initialize(config,function(){
-                modulesLoaded = this.loadModules();
-                console.log(modulesLoaded.length + " modules loaded!");
-                callback();
-            }.bind(this));
+        
+        if(config.web_interface && config.web_interface.enabled){
+            updateBotSituation();
         } 
+        ts3api.initialize(config,function(){
+            modulesLoaded = this.loadModules();
+            console.log(modulesLoaded.length + " modules loaded!");
+            callback();
+        }.bind(this));
     },
     loadModules : function(){
         if(config.module_monitor_chat.enabled){
@@ -140,6 +157,11 @@ module.exports = {
             ");"
 		];
         database.exec(sql.join(""));
+    },
+    destroy : function(){
+        ts3api.quitConnection(function(err, res){
+
+        });
     }
 
 };
