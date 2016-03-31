@@ -80,6 +80,11 @@ config.module_monitor_chat = {
 	spam_timeframe: 5000
 };
 
+config.tessu_stats_integration = {
+        enabled: true,
+        site_root: "yourtessustatsdomain.com/"
+};
+
 config.module_monitor_channel_slots = {
 	enabled: true,
 	channel_delete_time: 5
@@ -201,6 +206,7 @@ config.launch_bot_in_startup = true; // true|false
 ### monitor-chat ###
 
 A module to prevent spamming in the server chat. Automatically detects spamming and kicks or bans the spammer.
+This module also logs the server and private chat and needs to be enabled for text commands used by other modules.
 
 Config
 
@@ -282,6 +288,23 @@ config.module_web_interface = {
 };
 ```
 
+### TessuStats integration ###
+
+A module that enables [TessuStats](https://bitbucket.org/Arap/tessustats) integration by introducing !whoami command. The bot responds with a link to their profile in a TessuStats domain provided in the config.
+
+**NEEDS monitor-chat MODULE TO BE ENABLED TO WORK**
+
+Config
+
+
+```
+#!Shell
+
+config.tessu_stats_integration = {
+	enabled: true,
+	site_root: "http://tessustats.ovh/app/"   //your domain where your tessustats is exposed to the internet (can also be ip address)
+};
+```
 
 ### License ###
 
@@ -310,3 +333,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
+
+
+### Library documentation and help for developing ###
+
+[node-sqlite3](https://github.com/mapbox/node-sqlite3/wiki/API)
+
+[node-teamspeak](https://www.npmjs.com/package/node-teamspeak)
+
+[Serverquery pdf](http://media.teamspeak.com/ts3_literature/TeamSpeak%203%20Server%20Query%20Manual.pdf)
