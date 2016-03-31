@@ -4,15 +4,18 @@ config.virtual_server_id = 1;
 config.ts_ip = "ExampleTSIP";
 config.serverquery_username = "ExampleUsername";
 config.serverquery_password = "ExamplePassword";
+config.web_admin_password = examplePassword; //Change this
 
 config.nickname = "HerGGuBot";
 
 config.reset_database = false;
 config.database_path = "botdatabase";
 config.debug_network = false;
-config.wrapper_restart_time = 10;
 
-config.launch_bot_in_startup = true;
+config.bot_use_wrapper = true;
+config.bot_wrapper_restart_time = 2;
+
+
 //------------------------------------
 // MODULES
 //------------------------------------
@@ -22,7 +25,16 @@ config.module_monitor_chat = {
     ban_punish: true,
     ban_length: 60,
     spam_limit: 4,
-    spam_timeframe: 5000
+    spam_timeframe: 5000,
+    admin_server_groups: [6],
+    muted_server_group: 12,
+    mute_length: 10,
+    mute_reason: "default mute reason"
+};
+
+config.tessu_stats_integration = {
+	enabled: true,
+	site_root: "yourtessustatsdomain.com/"
 };
 
 config.module_monitor_channel_slots = {
@@ -34,9 +46,12 @@ config.module_extra_logs = {
     enabled: true
 };
 
-config.module_web_interface = {
+config.web_interface = {
     enabled: true,
-    port: 9090
+    launch_bot_in_startup : true,
+    port: 9090,
+    use_wrapper : true,
+    wrapper_restart_time : 0.25
 };
 
 module.exports = config;

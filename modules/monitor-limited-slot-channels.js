@@ -5,6 +5,10 @@ var config = require('../config');
 var TIME_CHANNEL_DELETE = config.module_monitor_channel_slots.channel_delete_time;
 var channelsMarkedForDeletion = [];
 
+var dbUtil = require('../databaseUtil');
+
+const error_reporter_name = "monitor-lsc";
+
 module.exports = {
     start: function (herggubot) {
         this.bot = herggubot;
@@ -15,8 +19,9 @@ module.exports = {
     },
     monitorLimitedSlotChannels: function () {
         this.getInitialLimitedSlotChannels(function (err, channels) {
-            if (err)
-                return console.log(err);
+            if (err){
+                dbUtil.logError(JSON.stringify(err),error_reporter_name);
+            }
             this.limitedSlotChannels = channels;
 
             this.cleanUpLeftOverClones(function(){
@@ -65,7 +70,8 @@ module.exports = {
             if(this.checkIfNewCloneNeeded(channel)){
                 this.cloneLimitedChannel(channel,function(error){
                     if(error){
-                        //
+                        var errormessage = "Failed to clone channel " + JSON.stringify(channel);
+                        dbUtil.logError(errormessage,error_reporter_name);
                     }
                     //this.refreshClones(channel);
                 }.bind(this));
@@ -75,7 +81,7 @@ module.exports = {
                 //this.refreshClones(channel);
             }
         }.bind(this), function (err) {
-
+            //dbUtil.logError(JSON.stringify(err),error_reporter_name);
         }.bind(this));
     },
     updateLimitedSlotChannelsClientAmount: function (callback) {
@@ -83,7 +89,8 @@ module.exports = {
             //Loop through the original channels
             this.ts3api.getClientsInChannel(channel.channelId, function (err, clients) {
                 if(err){
-                    console.log("Error while getting the amount of clients in original limited slot channel. " + util.inspect(err));
+                    var errormessage = "Error while getting the amount of clients in original limited slot channel. " + util.inspect(err);
+                    dbUtil.logError(errormessage,error_reporter_name);
                     callback();
                     return;
                 }
@@ -96,7 +103,8 @@ module.exports = {
             async.forEach(channel.clones, function (clone, callback) {
                 this.ts3api.getClientsInChannel(clone.channelId, function (err, clients) {
                     if(err){
-                        console.log("Error while getting the amount of clients in cloned limited slot channel. " + util.inspect(err));
+                        var errormessage = "Error while getting the amount of clients in cloned limited slot channel. " + util.inspect(err);
+                        dbUtil.logError(errormessage,error_reporter_name);
                         callback();
                         return;
                     }
@@ -108,18 +116,23 @@ module.exports = {
                 }.bind(this));
             }.bind(this), function (err) {
                 //Error is most likely caused by empty clones array
+                //dbUtil.logError(JSON.stringify(err),error_reporter_name);
                 //console.log("Error while looping through limited slot channel clones. Error while updating limited slot client count. " + util.inspect(err));
             }.bind(this));
 
         }.bind(this), function (err) {
             
-            console.log("Error while looping through limited slot channels. Error while updating limited slot client count. " + util.inspect(err));
+            var errormesssage = "Error while looping through limited slot channels. Error while updating limited slot client count. " + util.inspect(err);
+            dbUtil.logError(errormessage,error_reporter_name);
         }.bind(this));
     },
     getInitialLimitedSlotChannels: function (callback) {
         this.ts3api.getChannelsByName("(Max.", function (error, channels) {
-            if (error)
-                return console.log("Failed to monitor limited slot channels, error while getting channels by name. " + util.inspect(error));
+            if (error){
+                var errorlog = "Failed to monitor limited slot channels, error while getting channels by name. " + util.inspect(error);
+                dbUtil.logError(errormessage,error_reporter_name);
+                return;
+            }
             var limitedSlotChannels = [];
             async.forEach(channels, function (channel, callback) {
                 //console.log(channel);
@@ -146,9 +159,13 @@ module.exports = {
                     }.bind(this));
                 }.bind(this));
             }.bind(this), function (err) {
-                if (err)
-                    return console.log(err);
+                if (err){
+
+                    return;
+                }
+                    
                 callback(err,limitedSlotChannels);
+                
             }.bind(this));
         }.bind(this));
     },
@@ -156,7 +173,8 @@ module.exports = {
         //Figure out the 
         this.ts3api.getChannelById(clonedChannel.channelId, function(error, channel) {
             if (error){
-                console.log("Failed to clone channel, error while getting the channels properties. " +  util.inspect(error));
+                var errormessage = "Failed to clone channel, error while getting the channels properties. " +  util.inspect(error);
+                dbUtil.logError(errormessage,error_reporter_name);
                 callback(error);
                 return;
             }
@@ -170,7 +188,8 @@ module.exports = {
 
             this.ts3api.createChannel(generatedChannelName, clonedChannel.maxSlots, channel.pid,2,{channel_order: initialOrder}, function(error, response) {
                 if (error){
-                    console.log("Failed to clone channel, error while creating the channel. " +  util.inspect(error));
+                    var errorlog = "Failed to clone channel, error while creating the channel. " +  util.inspect(error);
+                    dbUtil.logError(errormessage,error_reporter_name);
                     callback(error);
                     return;
                 }
@@ -225,12 +244,19 @@ module.exports = {
         return false;
     },
     removeClonedChannel: function(channel,index) {
+
+        if(channel.clones.length >= index || channel.clones[index] == undefined){
+            var errormessage = "Stopped potential crash (indexoutofbounds)";
+            //dbUtil.logError(errormessage,error_reporter_name);
+            return;
+        }
         this.ts3api.deleteChannel(channel.clones[index].channelId, function(error, response){
             if(error){
-                console.log("Failed to remove unneccessary cloned channel. " + util.inspect(error));
+                var errormessage = "Failed to remove unneccessary cloned channel. " + util.inspect(error);
+                dbUtil.logError(errormessage,error_reporter_name);
             }else{
-                console.log("Deleted channel " + channel.clones[index].channelName);
-                this.bot.logAction("Deleted channel " + channel.clones[index].channelName);
+                var errormessage = "Deleted channel " + channel.clones[index].channelName;
+                dbUtil.logError(errormessage,error_reporter_name);
                 //Delete from tracking list
                 channel.clones.splice(channel.clones.indexOf(channel.clones[index]),1);
             }
@@ -272,7 +298,8 @@ module.exports = {
             var cloneOrder = (channel.clones.indexOf(clone) == 0) ? channel.channelId: channel.clones[channel.clones.indexOf(clone)-1].channelId ;
             this.ts3api.editChannel(clone.channelId,{channel_order: cloneOrder, cpid: channel.channelId, channel_name: clone.channelName},function(err, response){
                 if(err){
-                    console.log("ERROR WHILE EDITING CHANNEL");
+                    var errormessage = "Error while editing channel " + util.inspect(err);
+                    dbUtil.logError(errormessage,error_reporter_name);
                 }
             });
         }.bind(this), function (err) {
@@ -289,9 +316,14 @@ module.exports = {
         }
         for(var l= 0 ; l < removedClones.length; l++){
             var removed = removedClones[l];
+            if(removed.usedSlots > 0){
+                continue;
+            }
             this.ts3api.deleteChannel(removed.channelId, function(error, response){
                 if(error){
-                    console.log("Failed to remove leftover cloned channel. " + util.inspect(error));
+                    var errormessage = "Failed to remove leftover cloned channel. " + util.inspect(error);
+                    dbUtil.logError(errormessage,error_reporter_name);
+
                 }else{
                     console.log("Deleted leftover cloned channel " + removed.channelName);
                     this.bot.logAction("Deleted channel " + removed.channelName);

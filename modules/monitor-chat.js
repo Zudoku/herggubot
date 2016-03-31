@@ -1,6 +1,9 @@
 var config = require('../config');
 var spamKickMessage = config.module_monitor_chat.spam_message;
 var util = require('util');
+var dbUtil = require('../databaseUtil');
+
+const error_reporter_name = "monitor-chat";
 
 module.exports = {
     start: function (herggubot) {
@@ -15,7 +18,8 @@ module.exports = {
         var spamLimit = config.module_monitor_chat.spam_limit; //messages
         this.ts3api.getClientById(clientId,function(error,data){
             if(error){
-                console.log("Failed to check databaseid for client " + clientId + " Error: " + util.inspect(error));
+                var errormessage = "Failed to check databaseid for client " + clientId + " Error: " + util.inspect(error);
+                dbUtil.logError(errormessage,error_reporter_name);
             }else{
                 var checkDate = new Date();
                 checkDate.setTime(checkDate.getTime() - spamTimeFrame);
@@ -27,15 +31,15 @@ module.exports = {
 
                             this.ts3api.banClientFromServer(clientId,spamKickMessage,config.module_monitor_chat.ban_length,function(error,data){
                                 if(error){
-                                    console.log("Error while trying to ban spammer " + clientId + " Reason: " + error);
-                                    this.bot.logAction("Error while trying to ban spammer " + clientId + " Reason: " + error);
+                                    var errormessage = "Error while trying to ban spammer " + clientId + " Reason: " + error;
+                                    dbUtil.logError(errormessage,error_reporter_name);
                                 }
                             });
                         }else{
                             this.ts3api.kickClientFromServer(clientId,spamKickMessage,function(error,data){
                                 if(error){
-                                    console.log("Error while trying to kick spammer " + clientId + " Reason: " + error);
-                                    this.bot.logAction("Error while trying to kick spammer " + clientId + " Reason: " + error);
+                                    var errormessage = "Error while trying to kick spammer " + clientId + " Reason: " + error;
+                                    dbUtil.logError(errormessage,error_reporter_name);
                                 }
                             });
                         }
@@ -60,12 +64,14 @@ module.exports = {
                             if(config.tessu_stats_integration.enabled){
                                 this.ts3api.getClientById(data.invokerid,function(error,clientData){
                                     if(error){
-                                        console.log("Failed to check databaseid for client " + data.invokerid + " Error: " + util.inspect(error));
+                                        var errormesasge = "Failed to check databaseid for client " + data.invokerid + " Error: " + util.inspect(error);
+                                        dbUtil.logError(errormessage,error_reporter_name);
                                     }else{
                                         var tessustats_url = "[url=" + config.tessu_stats_integration.site_root + "#/user/" + clientData.client_database_id + "]Here you go![/url]";
                                         this.ts3api.sendServerMessage(tessustats_url,function(error,response){
                                             if(error){
-                                                console.log("Failed to send server message. Error: " + util.inspect(error));
+                                                var errormessage = "Failed to send server message. Error: " + util.inspect(error);
+                                                dbUtil.logError(errormessage,error_reporter_name);
                                             }else{
 
                                             }
