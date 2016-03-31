@@ -7,5 +7,5 @@ RUN npm install
 
 EXPOSE 3700
 
-CMD ["node", "tools/server.js"]
+CMD ["node", "startHerggubot.js"]
 
