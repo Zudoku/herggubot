@@ -154,6 +154,11 @@ module.exports = {
 			return callback(err, res);
 		});
 	},
+	quitConnection : function(callback){
+		this.__sendCommand("quit",{}, function(err, res){
+			return callback(err, res);
+		});
+	},
 	__login: function (username, password,vsId, callback) {
 		this.__sendCommand("login", { client_login_name: username, client_login_password: password }, function (err) {
 			if (err && typeof callback == "function")

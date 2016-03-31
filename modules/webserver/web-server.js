@@ -1,14 +1,47 @@
 var express = require('express');
 var app = express();
+var sqlite3 = require('sqlite3').verbose();
 var config = require('../../config');
 var util = require('util');
+var wrapper = require('../../wrapper');
+
 
 var chunkAmount = 200;
 
+var botInfo = {
+    started : '',
+    modulesLoaded : ''
+
+};
+var botProcess = undefined;
+
+
+
+var database = new sqlite3.Database(config.database_path);
+
+process.on('exit', function (code, signal) {
+
+    if(botProcess != undefined){
+        
+        if(botProcess.connected){
+            console.log("Trying to cleanup bot process...");
+            botProcess.kill('SIGTERM');
+        }
+    }
+}); 
+
+process.on('SIGINT', function () {
+    process.exit(2);
+});
+process.on('uncaughtException', function(e) {
+    console.log('Uncaught Exception...');
+    console.log(e.stack);
+    process.exit(99);
+});
+
 
 module.exports = {
-	start: function (herggubot) {
-        this.database = herggubot.database;
+	start: function () {
 
         app.use("/herggubot/", function(req,res,next){
             if(config.module_extra_logs.enabled){
@@ -20,7 +53,7 @@ module.exports = {
         app.use("/herggubot/", express.static(__dirname + '/pages'));
 
         app.get("/herggubot/api/serverlog", function(req, res){
-        	this.database.all("SELECT * FROM serveractionlog;", function(err,rows){
+        	database.all("SELECT * FROM serveractionlog;", function(err,rows){
         		var filteredRows = rows.filter(function(value){
 
                     if(req.query.index == undefined){
@@ -91,7 +124,7 @@ module.exports = {
         	});
         }.bind(this));
         app.get("/herggubot/api/serverchat", function(req, res){
-        	this.database.all("SELECT * FROM serverchatlog;", function(err,rows){
+        	database.all("SELECT * FROM serverchatlog;", function(err,rows){
 
                 if(req.query.index == undefined){
                     res.send([]);
@@ -106,7 +139,7 @@ module.exports = {
         	});
         }.bind(this));
         app.get("/herggubot/api/privatechat", function(req, res){
-        	this.database.all("SELECT * FROM privatechatlog;", function(err,rows){
+        	database.all("SELECT * FROM privatechatlog;", function(err,rows){
         		if(req.query.index == undefined){
                     res.send([]);
                     return;
@@ -121,7 +154,7 @@ module.exports = {
         	});
         }.bind(this));
         app.get("/herggubot/api/actionlog", function(req, res){
-        	this.database.all("SELECT * FROM actionlog;", function(err,rows){
+        	database.all("SELECT * FROM actionlog;", function(err,rows){
         		if(req.query.index == undefined){
                     res.send([]);
                     return;
@@ -145,27 +178,27 @@ module.exports = {
         	safeConfig.database_path = "CENSORED";
         	safeConfig.serverquery_username = "CENSORED";
         	safeConfig.serverquery_password = "CENSORED";
+            safeConfig.web_admin_password = "CENSORED";
 
         	res.send(JSON.stringify(safeConfig, null, 4));
         }.bind(this));
 
         app.get("/herggubot/api/modules", function(req, res){
-            var response = [{
-                botRunningSince : herggubot.botStarted
-
-            }];
-
-        	var modulemap = herggubot.modulesLoaded.map(function(obj){
-        		return obj.share();
-        	});
-            response = response.concat(modulemap);
+            var response = [];
+            if(botInfo != undefined){
+                
+                response = response.concat(botInfo);
+            }
+        	
         	res.send(JSON.stringify(response, null, 4));
         }.bind(this));
 
-        app.listen(config.module_web_interface.port);
-        console.log("Webserver started at port " + config.module_web_interface.port);
-        console.log("Module web-server loaded!");
-
+        app.listen(config.web_interface.port);
+        console.log("Webserver started at port " + config.web_interface.port);
+        
+        if(config.web_interface.launch_bot_in_startup){
+            module.exports.startBot();
+        }
 
     },
     share : function() {
@@ -173,5 +206,46 @@ module.exports = {
             module: "web-server"
         };
         return object;
+    },
+    reloadConfig : function() {
+        config = require('../../config');
+        database = new sqlite3.Database(config.database_path);
+    },
+    shutDownBot : function(){
+        if(herggubot != undefined){
+            herggubot.destroy();
+        }
+        if(botProcess != undefined){
+            botProcess.send({msg : "destroy"});
+            botProcess.kill('SIGTERM');
+        }
+        
+        botProcess = undefined;
+        herggubot = undefined;
+        botInfo = undefined;
+    },
+    startBot: function(){
+        botProcess = wrapper.spawnBotInstance(module.exports.botClose);
+        botProcess.on('message',(m) => {
+            if(m.msg == "readonlybot"){
+                botInfo = m.botInfo;
+            }
+        });
+        
+    },
+    restartBot : function(){
+        module.exports.shutDownBot();
+        module.exports.startBot();
+    },
+    botClose : function(code, signal){
+        console.log("Bot process closed " + code + " " + signal);
+        if(config.bot_use_wrapper){
+            setTimeout(function(){
+                if(config.bot_use_wrapper){
+                    module.exports.startBot();
+                }
+            },config.bot_wrapper_restart_time * 60 * 1000);
+        }
     }
+
 };

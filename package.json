@@ -2,15 +2,15 @@
   "name": "HerGGuBot",
   "version": "0.1.1",
   "description": "",
-  "author": "Arnold <arttu.siren@gmail.com>",
-  "license" : "SEE LICENSE IN LICENSE (MIT)",
+  "author": "Arttu <arttu.siren@gmail.com>",
+  "license" : "SEE LICENSE IN 'LICENSE' FILE (MIT)",
   "contributors": [
     {
       "name": "Rivenation",
       "email": "rivenation@gmail.com"
     },
     {
-      "name": "Arnold",
+      "name": "Arttu",
       "email": "arttu.siren@gmail.com"
     }
   ],
