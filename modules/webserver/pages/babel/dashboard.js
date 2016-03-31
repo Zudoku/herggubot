@@ -23,7 +23,7 @@ var DashBoard = React.createClass({
     $.ajax({
       url: "/herggubot/api/restart",
       dataType: 'json',
-      type: "POST",
+      type: "GET",
       data: {pw: password},
       success: function(data) {
         if(data.success == true){
@@ -39,12 +39,35 @@ var DashBoard = React.createClass({
     });
     console.log(password);
   },
+  tryToToggle: function(event){
+    var password = prompt("Password","");
+    $.ajax({
+      url: "/herggubot/api/toggle",
+      dataType: 'json',
+      type: "GET",
+      data: {pw: password},
+      success: function(data) {
+        if(data.success == true){
+          alert("Success!");
+        }else{
+          alert("not successful");
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+        alert("not successful");
+      }.bind(this)
+    });
+    console.log(password);
+  },
   render: function() {
     return (
       <div>
         <div>
-          <button type="button" onClick={this.tryToRestart} className="btn btn-danger">Restart Bot</button>
+          <button type="button" onClick={this.tryToRestart} className="btn btn-danger rightPadding">Restart Bot</button>
+          <button type="button" onClick={this.tryToToggle} className="btn btn-danger rightPadding">Toggle Bot</button>
         </div>
+        <div id="infobox"> </div>
         <hr/>
         <ul className="nav nav-tabs">
 
@@ -52,6 +75,7 @@ var DashBoard = React.createClass({
           <li role="presentation" className={this.isActive("serverchat-log")} onClick={this.changeTab}><a data-tab="serverchat-log" href="#">Server chat log</a></li>
           <li role="presentation" className={this.isActive("privatechat-log")} onClick={this.changeTab}><a data-tab="privatechat-log" href="#">Private chat log</a></li>
           <li role="presentation" className={this.isActive("action-log")} onClick={this.changeTab}><a data-tab="action-log" href="#">Action-log</a></li>
+          <li role="presentation" className={this.isActive("error-log")} onClick={this.changeTab}><a data-tab="error-log" href="#">Error-log</a></li>
         </ul>
         <div className="row">
           <div className="col-md-12">
@@ -89,6 +113,9 @@ var ServerLog = React.createClass({
        },
        actionlog_settings: {
 
+       },
+       errorlog_settings : {
+
        }
     };
   },
@@ -125,6 +152,10 @@ var ServerLog = React.createClass({
     if(this.props.state == "action-log"){
       url="/herggubot/api/actionlog";
       settings = this.state.actionlog_settings;
+    }
+    if(this.props.state == "error-log"){
+      url="/herggubot/api/errorlog";
+      settings = this.state.errorlog_settings;
     }
     settings.index = this.state.index;
 
@@ -390,6 +421,44 @@ var ServerLog = React.createClass({
                         <tr key={logline.id}>
                           <td>{this.formatDate(new Date(logline.date))}</td>
                           <td>{logline.text}</td>
+                        </tr>
+                      );
+                    }.bind(this))
+                  }
+                </tbody>
+              </table>
+              <div className="row">
+                <div className="col-md-4"></div>
+                <div className="col-md-4"><a onClick={this.moreLogsPress} >Load more</a></div>
+                <div className="col-md-4"></div>
+              </div>
+            </div>
+        );
+      }
+      else if(this.props.state == "error-log"){
+        return (
+            <div className="errorLog">
+              <hr/>
+              <div>
+                <button type="button" onClick={this.forceWipeLogs} className="btn btn-danger">Reload logs</button>
+              </div>
+              <hr/>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Reporter</th>
+                    <th>Error Message</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {
+                    this.state.logs.map(function(logline){
+                      return (
+                        <tr key={logline.id}>
+                          <td>{this.formatDate(new Date(logline.date))}</td>
+                          <td>{logline.reporter}</td>
+                          <td>{logline.errormessage}</td>
                         </tr>
                       );
                     }.bind(this))

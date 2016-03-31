@@ -154,6 +154,7 @@ module.exports = {
 			return callback(err, res);
 		});
 	},
+	//Closes the connection to the teamspeak server (called when shutting down the bot)
 	quitConnection : function(callback){
 		this.__sendCommand("quit",{}, function(err, res){
 			return callback(err, res);

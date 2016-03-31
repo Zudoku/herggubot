@@ -29,3 +29,7 @@
 .redText {
 	color: red !important;
 }
+
+.rightPadding {
+    margin-right: 10px;
+}
