@@ -5,7 +5,7 @@ ADD ./ /herggubot
 WORKDIR /herggubot/
 RUN npm install
 
-EXPOSE 3700
+EXPOSE 9090
 
 CMD ["node", "startHerggubot.js"]
 
