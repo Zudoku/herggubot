@@ -251,11 +251,15 @@ module.exports = {
 
         app.get("/herggubot/api/restart", function(req, res){
 
-            if(req.query.pw == config.web_admin_password && botProcess != undefined){
+            if(req.query.pw == config.web_admin_password){
+                userShutDownBot = false;
+                dbUtil.logAction("Restarting bot");
                 module.exports.restartBot();
                 res.send(JSON.stringify({success : true}, null, 4));
             }else {
+                dbUtil.logError("Wrong password while trying to restart bot",error_reporter_name);
                 res.send(JSON.stringify({success : false}, null, 4));
+
             } 
         }.bind(this));
 
@@ -264,20 +268,20 @@ module.exports = {
 
             if(req.query.pw == config.web_admin_password){
                 
-                
-                console.log(botProcess != undefined);
-
                 if(botProcess != undefined){
                     userShutDownBot = true;
-                    console.log("shutting down")
+                    dbUtil.logAction("Shutting bot down");
                     module.exports.shutDownBot();
                     res.send(JSON.stringify({success : true}, null, 4));
                 } else {
                     userShutDownBot = false;
+                    dbUtil.logAction("Starting bot");
                     module.exports.startBot();
+
                     res.send(JSON.stringify({success : true}, null, 4));
                 }
             }else {
+                dbUtil.logError("Wrong password while trying to toggle bot",error_reporter_name);
                 res.send(JSON.stringify({success : false}, null, 4));
             } 
         }.bind(this));
@@ -297,6 +301,7 @@ module.exports = {
     },
     shutDownBot : function(){
         if(botProcess != undefined){
+            dbUtil.logAction("Cleaning up bot process");
             botProcess.send({msg : "destroy"});
             botProcess.kill('SIGTERM');
         }
@@ -318,12 +323,17 @@ module.exports = {
         setTimeout(module.exports.startBot,5000);
     },
     botClose : function(code, signal){
-        console.log("Bot process closed " + code + " " + signal);
+        //console.log("Bot process closed " + code + " " + signal);
+        dbUtil.logAction("Bot process closed with code " + code + " " + signal);
         if(config.bot_use_wrapper && !userShutDownBot){
-            console.log("Bot will restart in " + config.bot_wrapper_restart_time * 60 * 1000);
+            //console.log("Bot will restart in " + config.bot_wrapper_restart_time * 60 * 1000);
+            dbUtil.logAction("Bot will restart in " + config.bot_wrapper_restart_time * 60 * 1000);
+            botProcess = undefined;
             setTimeout(function(){
                 if(config.bot_use_wrapper && botProcess == undefined){
                     module.exports.startBot();
+                } else {
+                    dbUtil.logError("Will not restart bot because process is not undefined",error_reporter_name);
                 }
             },config.bot_wrapper_restart_time * 60 * 1000);
         }
