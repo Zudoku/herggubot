@@ -70,7 +70,7 @@ module.exports = {
             if(this.checkIfNewCloneNeeded(channel)){
                 this.cloneLimitedChannel(channel,function(error){
                     if(error){
-                        var errormessage = "Failed to clone channel " + JSON.stringify(channel);
+                        var errormessage = "Failed to clone channel " + JSON.stringify(channel) + JSON.stringify(error);
                         dbUtil.logError(errormessage,error_reporter_name);
                     }
                     //this.refreshClones(channel);
@@ -188,7 +188,7 @@ module.exports = {
 
             this.ts3api.createChannel(generatedChannelName, clonedChannel.maxSlots, channel.pid,2,{channel_order: initialOrder}, function(error, response) {
                 if (error){
-                    var errorlog = "Failed to clone channel, error while creating the channel. " +  util.inspect(error);
+                    var errormessage = "Failed to clone channel, error while creating the channel. " +  util.inspect(error);
                     dbUtil.logError(errormessage,error_reporter_name);
                     callback(error);
                     return;

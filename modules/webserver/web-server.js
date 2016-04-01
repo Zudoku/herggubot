@@ -17,6 +17,8 @@ const error_reporter_name = "web-server-core";
 
 var userShutDownBot = false;
 
+var botInfoChanged = undefined;
+
 
 
 process.on('exit', function (code, signal) {
@@ -239,8 +241,7 @@ module.exports = {
         // Returns JSON object with information about the bot
         app.get("/herggubot/api/modules", function(req, res){
             var response = [];
-            if(botInfo != undefined){
-                
+            if(botInfo != undefined && botInfoChanged != undefined && new Date() - botInfoChanged < 10000){
                 response = response.concat(botInfo);
             } else {
                 response = [{}];
@@ -314,6 +315,7 @@ module.exports = {
         botProcess.on('message',(m) => {
             if(m.msg == "readonlybot"){
                 botInfo = m.botInfo;
+                botInfoChanged = new Date();
             }
         });
         
