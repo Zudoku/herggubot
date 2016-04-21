@@ -17,6 +17,25 @@ module.exports = {
         module.exports.monitorLimitedSlotChannels();
         console.log("Module monitor-limited-slot-channels loaded!");
     },
+
+    refreshOriginalChannels : function(){
+
+        this.bot.logAction("Refeshing original channels!");
+
+        this.getInitialLimitedSlotChannels(function (err, channels) {
+            if (err){
+                dbUtil.logError(JSON.stringify(err),error_reporter_name);
+            }
+            this.limitedSlotChannels = channels;
+
+            this.cleanUpLeftOverClones(function(){});
+        }
+    },
+
+
+    // Init function for the module
+    // Looks up the original channels
+    // Starts up loops to monitor the channels
     monitorLimitedSlotChannels: function () {
         this.getInitialLimitedSlotChannels(function (err, channels) {
             if (err){
@@ -38,29 +57,32 @@ module.exports = {
             
         }.bind(this));
     },
+    //Check if new channel needs to be made (When there is no channel with 0 people)
+    //Create new channel if necessary
+    //Or delete channels if there are multiple channels with 0 people
     checkLimitedSlotChannels : function(){
         async.forEach(this.limitedSlotChannels, function (channel, callback) {
 
             var changed = false;
-            //Check if new channel needs to be made (If atleast one empty channel)
-            //Create new channel if necessary
-            //Or delete channel if necessary'
+            
             var deletedChannels = [];
 
             for(var u = 0 ; u < channel.clones.length ; u++){
                 var nowDate = new Date();
+                //If this channel has been empty for some time
                 if(channel.clones[u].usedSlots == 0 && (nowDate.getTime() - channel.clones[u].sameSince.getTime() ) >= TIME_CHANNEL_DELETE * 1000){
                     //If there are other empty channels
                     if(this.checkIfOtherEmptyChannels(channel,u,deletedChannels)){
                         //Remove unnecessary channel
-                        //this.removeClonedChannel(channel,u);
+                        this.bot.logAction("Marking channel " + util.inspect(channel.clones[u])  + " for deletion");
                         deletedChannels.push(u);
                         changed = true;
                     }
                 }
             }
+            //Hack to get around index errors
             deletedChannels.reverse();
-            this.channelsMarkedForDeletion = deletedChannels;
+            this.channelsMarkedForDeletion = deletedChannels; //why ...?
             //Remove the cloned channels that were marked for deletion
             for(var k = 0 ; k < deletedChannels.length ; k++){
                 this.removeClonedChannel(channel,deletedChannels[k]);
@@ -84,6 +106,8 @@ module.exports = {
             //dbUtil.logError(JSON.stringify(err),error_reporter_name);
         }.bind(this));
     },
+    // This refreshes the 
+    // channel slots
     updateLimitedSlotChannelsClientAmount: function (callback) {
         async.forEach(this.limitedSlotChannels, function (channel, callback) {
             //Loop through the original channels
@@ -126,6 +150,7 @@ module.exports = {
             dbUtil.logError(errormessage,error_reporter_name);
         }.bind(this));
     },
+    // Looks up the original channels that need to be monitored
     getInitialLimitedSlotChannels: function (callback) {
         this.ts3api.getChannelsByName("(Max.", function (error, channels) {
             if (error){
@@ -169,8 +194,14 @@ module.exports = {
             }.bind(this));
         }.bind(this));
     },
+    //Attempts to clone original channel
     cloneLimitedChannel: function(clonedChannel, callback) {
-        //Figure out the 
+        //Check if this channelname is too long (creating the cloned channel will return error, so we just skip trying to do it to prevent getting flood ban)
+        if(clonedChannel.channelName.length + 7 > teamspeak_channel_name_max_length){
+            //Channel name is too long
+            return;
+        }
+
         this.ts3api.getChannelById(clonedChannel.channelId, function(error, channel) {
             if (error){
                 var errormessage = "Failed to clone channel, error while getting the channels properties. " +  util.inspect(error);
@@ -179,6 +210,12 @@ module.exports = {
                 return;
             }
             var generatedChannelName = this.calculateNewChannelName(clonedChannel);
+
+            if(generatedChannelName.length > teamspeak_channel_name_max_length){
+                //Channel name is too long, (teamspeak will return error)
+                return;
+            }
+            //order should be the channelID of the channel that you are below
             var initialOrder;
             if(clonedChannel.clones.length == 0){
                 initialOrder = clonedChannel.channelId;
@@ -193,7 +230,6 @@ module.exports = {
                     callback(error);
                     return;
                 }
-                console.log("Channel " + generatedChannelName + " created");
                 this.bot.logAction("Created channel "+ generatedChannelName + " with id " + response.cid);
 
                 clonedChannel.clones.push({
@@ -245,17 +281,18 @@ module.exports = {
     },
     removeClonedChannel: function(channel,index) {
 
-        if(channel.clones.length >= index || channel.clones[index] == undefined){
+        if(channel.clones.length <= index || channel.clones[index] == undefined){
             var errormessage = "Stopped potential crash (indexoutofbounds)";
-            //dbUtil.logError(errormessage,error_reporter_name);
+            dbUtil.logError(errormessage,error_reporter_name);
             return;
         }
+        var channelName = channel.clones[index].channelName;
         this.ts3api.deleteChannel(channel.clones[index].channelId, function(error, response){
             if(error){
                 var errormessage = "Failed to remove unneccessary cloned channel. " + util.inspect(error);
                 dbUtil.logError(errormessage,error_reporter_name);
             }else{
-                var errormessage = "Deleted channel " + channel.clones[index].channelName;
+                var errormessage = "Deleted channel " + channelName;
                 dbUtil.logError(errormessage,error_reporter_name);
                 //Delete from tracking list
                 channel.clones.splice(channel.clones.indexOf(channel.clones[index]),1);
@@ -317,7 +354,7 @@ module.exports = {
         for(var l= 0 ; l < removedClones.length; l++){
             var removed = removedClones[l];
             if(removed.usedSlots > 0){
-                continue;
+                //continue;
             }
             this.ts3api.deleteChannel(removed.channelId, function(error, response){
                 if(error){

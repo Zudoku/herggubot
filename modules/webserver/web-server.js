@@ -19,12 +19,12 @@ var userShutDownBot = false;
 
 var botInfoChanged = undefined;
 
-
+//We try to catch all exceptions and ctrl + C 
+//so we can do cleanup on the bot process
 
 process.on('exit', function (code, signal) {
     //Do cleanup before exiting
     if(botProcess != undefined){
-        
         if(botProcess.connected){
             console.log("Trying to cleanup bot process...");
             botProcess.kill('SIGTERM');
@@ -43,6 +43,8 @@ process.on('uncaughtException', function(e) {
     //We catch it and exit peacefully with errorcode 99 so that the cleanup-code will run
     process.exit(99);
 });
+
+
 
 
 module.exports = {
@@ -287,6 +289,18 @@ module.exports = {
             } 
         }.bind(this));
 
+        app.get("/herggubot/api/refreshLSC", function(req, res){
+
+            if(botProcess != undefined){
+                botProcess.send({msg : "refreshLSC"});
+                res.send(JSON.stringify({success : true}, null, 4));
+            } else {
+                res.send(JSON.stringify({success : false}, null, 4));
+            }
+
+            
+        }.bind(this));
+
         app.listen(config.web_interface.port);
         console.log("Webserver started at port " + config.web_interface.port);
         dbUtil.logAction("Web-server started at port " + config.web_interface.port);
@@ -326,7 +340,7 @@ module.exports = {
     },
     botClose : function(code, signal){
         //console.log("Bot process closed " + code + " " + signal);
-        dbUtil.logAction("Bot process closed with code " + code + " " + signal);
+        dbUtil.logAction("Bot process closed with code " + code);
         if(config.bot_use_wrapper && !userShutDownBot){
             //console.log("Bot will restart in " + config.bot_wrapper_restart_time * 60 * 1000);
             dbUtil.logAction("Bot will restart in " + config.bot_wrapper_restart_time * 60 * 1000);
@@ -335,7 +349,7 @@ module.exports = {
                 if(config.bot_use_wrapper && botProcess == undefined){
                     module.exports.startBot();
                 } else {
-                    dbUtil.logError("Will not restart bot because process is not undefined",error_reporter_name);
+                    dbUtil.logError("Automatic restart will not launch bot because process is defined (bot is already running)",error_reporter_name);
                 }
             },config.bot_wrapper_restart_time * 60 * 1000);
         }

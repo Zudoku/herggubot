@@ -18,6 +18,25 @@ var DashBoard = React.createClass({
     }.bind(this));
     
   },
+  tryToRefreshLSC: function(event){
+    $.ajax({
+      url: "/herggubot/api/refreshLSC",
+      dataType: 'json',
+      type: "GET",
+      data: {},
+      success: function(data) {
+        if(data.success == true){
+          alert("Refreshing!");
+        }else{
+          alert("Refresh not successful, bot is offline");
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+        alert("Refresh not successful");
+      }.bind(this)
+    });
+  },
   tryToRestart: function(event){
     var password = prompt("Password","");
     $.ajax({
@@ -66,6 +85,7 @@ var DashBoard = React.createClass({
         <div>
           <button type="button" onClick={this.tryToRestart} className="btn btn-danger rightPadding">Restart Bot</button>
           <button type="button" onClick={this.tryToToggle} className="btn btn-danger rightPadding">Toggle Bot</button>
+          <button type="button" onClick={this.tryToRefreshLSC} className="btn btn-danger rightPadding">Reload channel module</button>
         </div>
         <div id="infobox"> </div>
         <hr/>
