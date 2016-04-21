@@ -46,11 +46,18 @@ module.exports = {
         if(config.web_interface && config.web_interface.enabled){
             updateBotStatus();
         } 
-        ts3api.initialize(config,function(){
+        ts3api.initialize(config,function(err){
+
+            if(err){
+                dbUtil.logError("Error while initializing TS3 connection: " + util.inspect(error),error_reporter_name);
+                dbUtil.logError("Calling callback(), not loading modules...",error_reporter_name);
+                callback();
+                return;
+            }
+
             dbUtil.logAction("Bot loading modules");
             modulesLoaded = this.loadModules();
             dbUtil.logAction("Bot loaded " + modulesLoaded.length+ " modules");
-            console.log(modulesLoaded.length + " modules loaded!");
             callback();
         }.bind(this));
     },

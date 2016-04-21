@@ -4,6 +4,7 @@ var util = require('util');
 var dbUtil = require('../databaseUtil');
 
 const error_reporter_name = "monitor-chat";
+const teamspeak_channel_name_max_length = 40;
 
 module.exports = {
     start: function (herggubot) {
@@ -32,14 +33,14 @@ module.exports = {
 
                             this.ts3api.banClientFromServer(clientId,spamKickMessage,config.module_monitor_chat.ban_length,function(error,data){
                                 if(error){
-                                    var errormessage = "Error while trying to ban spammer " + clientId + " Reason: " + error;
+                                    var errormessage = "Error while trying to ban spammer " + clientId + " Reason: " + util.inspect(error);
                                     dbUtil.logError(errormessage,error_reporter_name);
                                 }
                             });
                         }else{
                             this.ts3api.kickClientFromServer(clientId,spamKickMessage,function(error,data){
                                 if(error){
-                                    var errormessage = "Error while trying to kick spammer " + clientId + " Reason: " + error;
+                                    var errormessage = "Error while trying to kick spammer " + clientId + " Reason: " + util.inspect(error);
                                     dbUtil.logError(errormessage,error_reporter_name);
                                 }
                             });
