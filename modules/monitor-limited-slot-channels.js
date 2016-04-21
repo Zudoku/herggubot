@@ -29,7 +29,7 @@ module.exports = {
             this.limitedSlotChannels = channels;
 
             this.cleanUpLeftOverClones(function(){});
-        }
+        });
     },
 
 
