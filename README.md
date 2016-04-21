@@ -50,7 +50,7 @@ Successfully built 5c95d6700e6f
 
 
 ```
-#!Shell
+#!Javascript
 var config = {};
 
 config.virtual_server_id = 1; 
