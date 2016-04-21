@@ -37,6 +37,8 @@ module.exports = {
     // Looks up the original channels
     // Starts up loops to monitor the channels
     monitorLimitedSlotChannels: function () {
+
+        var refresh_rate = config.module_monitor_channel_slots.channel_slot_refresh_rate;
         this.getInitialLimitedSlotChannels(function (err, channels) {
             if (err){
                 dbUtil.logError(JSON.stringify(err),error_reporter_name);
@@ -47,11 +49,11 @@ module.exports = {
                 //Update the amount of users in the tracked channels
                 setInterval(function () {
                     this.updateLimitedSlotChannelsClientAmount(function(){});
-                }.bind(this), 2000);
+                }.bind(this), refresh_rate);
                 //Check if channels are full / check if channels need to be deleted
                 setInterval(function () {
                     this.checkLimitedSlotChannels();
-                }.bind(this), 2000);
+                }.bind(this), refresh_rate);
             }.bind(this));
 
             
@@ -154,21 +156,29 @@ module.exports = {
     getInitialLimitedSlotChannels: function (callback) {
         this.ts3api.getChannelsByName("(Max.", function (error, channels) {
             if (error){
-                var errorlog = "Failed to monitor limited slot channels, error while getting channels by name. " + util.inspect(error);
+                var errormessage = "Failed to monitor limited slot channels, error while getting channels by name. " + util.inspect(error);
                 dbUtil.logError(errormessage,error_reporter_name);
-                return;
+                return callback(errormessage,[]);
             }
             var limitedSlotChannels = [];
             async.forEach(channels, function (channel, callback) {
                 //console.log(channel);
                 var maxSlots = parseInt(/\(Max\.(?:\s)*([0-9])\)/g.exec(channel.channel_name)[1]); //1 takes the result from the second capture group from the regex object //First one (0) is the whole (Max. #) thing                
                 this.ts3api.getClientsInChannel(channel.cid, function (error, clients) {
-                    if (error)
-                        return callback("Failed to monitor limited slot channels, error while getting clients in channel: " + channel.cid + " " + util.inspect(error),[]);
+                    if (error){
+                        var errormessage = "Failed to monitor limited slot channels, error while getting clients in channel: " + channel.cid + " " + util.inspect(error);
+                        dbUtil.logError(errormessage,error_reporter_name);
+                        return callback(errormessage,[]);
+                    }
+
+                        
 
                     this.ts3api.getChannelById(channel.cid, function(error,channelInfo){
-                        if (error)
-                            return callback("Failed to monitor limited slot channels, error while getting channel info: " + channel.cid + " " + util.inspect(error),[]);
+                        if (error){
+                            var errormessage = "Failed to monitor limited slot channels, error while getting channel info: " + channel.cid + " " + util.inspect(error);
+                            dbUtil.logError(errormessage,error_reporter_name);
+                            return callback(errormessage,[]);
+                        }
 
                         limitedSlotChannels.push({
                             channelId: channel.cid,
