@@ -4,7 +4,7 @@
 ```
 #!Shell
 
-Version: 0.1.1
+Version: 0.1.3 (21.4.2016)
 ```
 
 
@@ -17,6 +17,14 @@ Run this oneliner to install:
 #!shell
 
 git clone https://bitbucket.org/Arap/herggubot.git; cd herggubot; npm install 
+
+```
+To run the bot: 
+```
+#!shell
+
+node startHerggubot.js
+
 ```
 
 ###Installing with Docker###
@@ -28,46 +36,38 @@ Working DockerFile is provided with the repository:
 
 git clone https://bitbucket.org/Arap/herggubot.git; cd herggubot;
 
-docker build  -t herggu/herggubot . 
-```
+[arnold@___ herggubot]$ docker build  -t herggu/herggubot --no-cache . 
+...
+...
+...
+Successfully built 5c95d6700e6f
+[arnold@____ herggubot]$ docker run -p 127.0.0.1:9090:9090 -d 5c95d6700e6f
+200a157b082efef4a7a8a307a9a9df245682ea819bb110e8222095074fed939b
 
-###Run###
-To run the bot:
-
-```
-#!shell
-
-node start.js
-```
-
-To make the bot restart on crash:
-
-```
-#!shell
-
-node wrapper.js
 ```
 
 **Example config.js**
 
 
 ```
-#!Shell
+#!Javascript
 var config = {};
 
 config.virtual_server_id = 1; 
 config.ts_ip = "ExampleTSIP";
 config.serverquery_username = "ExampleUsername";
 config.serverquery_password = "ExamplePassword";
+config.web_admin_password = "ExamplePassword";
 
 config.nickname = "HerGGuBot";
 
 config.reset_database = false;
 config.database_path = "botdatabase";
 config.debug_network = false;
-config.wrapper_restart_time = 10;
 
-config.launch_bot_in_startup = true;
+config.bot_use_wrapper = true;
+config.bot_wrapper_restart_time = 2;
+
 //------------------------------------
 // MODULES
 //------------------------------------
@@ -77,7 +77,11 @@ config.module_monitor_chat = {
 	ban_punish: true,
 	ban_length: 60,
 	spam_limit: 4,
-	spam_timeframe: 5000
+	spam_timeframe: 5000,
+	admin_server_groups: [6],
+	muted_server_group: 12,
+	mute_length: 10,
+	mute_reason: "Default reason"
 };
 
 config.tessu_stats_integration = {
@@ -96,7 +100,10 @@ config.module_extra_logs = {
 
 config.module_web_interface = {
 	enabled: true,
-	port: 9090
+	launch_bot_in_startup : true,
+	port: 9090,
+	use_wrapper : true,
+	wrapper_restart_time : 0.25
 };
 
 module.exports = config;
