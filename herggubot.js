@@ -49,7 +49,7 @@ module.exports = {
         ts3api.initialize(config,function(err){
 
             if(err){
-                dbUtil.logError("Error while initializing TS3 connection: " + util.inspect(error),error_reporter_name);
+                dbUtil.logError("Error while initializing TS3 connection: " + util.inspect(err),error_reporter_name);
                 dbUtil.logError("Calling callback(), not loading modules...",error_reporter_name);
                 callback();
                 return;
