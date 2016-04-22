@@ -52,6 +52,15 @@ module.exports = {
 				return callback(err, res);
 		});
 	},
+	/*
+		clients = [{
+			clid: 1,
+			cid: 12515, #channelId,
+			client_database_id: 1231,
+			client_nickname: "Nick",
+			client_type: 0
+		}]
+	*/
 	getClientsInChannel: function (channelId, callback) {
 		this.__sendCommand("clientlist", {}, function (err, res) {
 			if (err && typeof callback == "function")
@@ -62,6 +71,20 @@ module.exports = {
 			callback(null, targetClients);
 		});
 	},
+	getDetailedClientsInChannel: function (channelId, callback) {
+		this.getClientsInChannel(channelId, function (err, clients) {
+			if (err) return callback(err);
+			async.map(clients, function (client, callback) {
+				this.getClientById(client.clid, function (err, detailedClient) {
+					if (err) return callback(err);
+					detailedClient.clid = client.clid;
+					callback(err, detailedClient);
+				});
+			}.bind(this), function (err, detailedClients) {
+				callback(err, detailedClients);
+			});
+		}.bind(this));
+	},
 	getClientsOnline: function (callback) {
 		this.__sendCommand("clientlist", {}, function (err, res) {
 			var results = res.constructor == Array ? res : [res];
@@ -70,6 +93,21 @@ module.exports = {
 	},
 	getChannelsByName: function (channelName, callback) {
 		this.__sendCommand("channelfind", { pattern: channelName }, function (err, res) {
+			return callback(err, res);
+		});
+	},
+	/*
+		channels = [{
+			cid: 4439,
+			pid: 3,
+			channel_order: 4130,
+			channel_name: "Channel name",
+			total_clients: 5,
+			channel_needed_subscribe_power: 0
+		}]
+	*/
+	getChannelList: function (callback) {
+		this.__sendCommand("channellist", {}, function (err, res) {
 			return callback(err, res);
 		});
 	},

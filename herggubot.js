@@ -86,6 +86,12 @@ module.exports = {
             this.onMessageListeners.push(muteUser);
             modulesLoaded.push(muteUser);
         }
+        if (config.module_admin_tools.enabled) {
+            var adminTools = require("./modules/admin-tools.js");
+            adminTools.start(this);
+            this.onMessageListeners.push(adminTools);
+            modulesLoaded.push(adminTools);
+        }
         return modulesLoaded;
     },
     addtoIgnoreList : function(clientId){

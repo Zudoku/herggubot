@@ -11,7 +11,7 @@ config.nickname = "HerGGuBot";
 config.reset_database = false;
 config.database_path = "botdatabase";
 config.debug_network = false;
-config.query_time_limit = 1000; //Milliseconds
+config.query_time_limit = 300; //Milliseconds
 
 config.bot_use_wrapper = true;
 config.bot_wrapper_restart_time = 2;
@@ -35,6 +35,12 @@ config.module_mute_user = {
     muted_server_group: 12,
     mute_length: 10,
     mute_reason: "default mute reason"
+};
+
+config.module_admin_tools = {
+    enabled: true,
+    inactive_users_servergroup_whitelist: [],
+    inactive_kick_message: "Add kick message here"
 };
 
 config.tessu_stats_integration = {
