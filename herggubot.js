@@ -35,6 +35,7 @@ module.exports = {
     database : database,
     node: node,
     modulesLoaded : modulesLoaded,
+    onMessageListeners: [],
     botStarted : new Date(),
     launch : function(callback){
         dbUtil.logAction("Bot launched");
@@ -58,6 +59,7 @@ module.exports = {
             dbUtil.logAction("Bot loading modules");
             modulesLoaded = this.loadModules();
             dbUtil.logAction("Bot loaded " + modulesLoaded.length+ " modules");
+            this.handleChatMessages();
             callback();
         }.bind(this));
     },
@@ -65,6 +67,7 @@ module.exports = {
         if(config.module_monitor_chat.enabled){
             var monitorChat = require('./modules/monitor-chat');
             monitorChat.start(this);
+            this.onMessageListeners.push(monitorChat);
             modulesLoaded.push(monitorChat);
         }
         if(config.module_monitor_channel_slots.enabled){
@@ -77,10 +80,13 @@ module.exports = {
             extraLogs.start(this);
             modulesLoaded.push(extraLogs);
         }
-
-
+        if (config.module_mute_user.enabled) {
+            var muteUser = require("./modules/mute-user.js");
+            muteUser.start(this);
+            this.onMessageListeners.push(muteUser);
+            modulesLoaded.push(muteUser);
+        }
         return modulesLoaded;
-
     },
     addtoIgnoreList : function(clientId){
         ts3api.getClientById(clientId,function(error,data){
@@ -104,6 +110,25 @@ module.exports = {
                 });
             }
         });
+    },
+    handleChatMessages: function () {
+        this.ts3api.registerListener("textmessage", function(data) {
+            this.onMessageListeners.forEach(function (module) {
+                module.onChatMessage(data);
+            });
+            switch(data.targetmode){
+                case 3: //Server chat
+                    if(config.debug_network){
+                        console.log("SERVER CHAT: " + data.invokername + " : " + data.msg);
+                    }
+                break;
+                case 1: //Private chat
+                    if(config.debug_network){
+                        console.log("PRIVATE CHAT: " + data.invokername + " : " + data.msg);
+                    }
+                break;
+            }
+        }.bind(this));
     },
     logAction : function(actionString) {
         dbUtil.logAction(actionString);

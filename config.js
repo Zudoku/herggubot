@@ -26,7 +26,11 @@ config.module_monitor_chat = {
     ban_punish: true,
     ban_length: 60,
     spam_limit: 4,
-    spam_timeframe: 5000,
+    spam_timeframe: 5000
+};
+
+config.module_mute_user = {
+    enabled: true,
     admin_server_groups: [6],
     muted_server_group: 12,
     mute_length: 10,
@@ -39,7 +43,7 @@ config.tessu_stats_integration = {
 };
 
 config.module_monitor_channel_slots = {
-    enabled: true,
+    enabled: false,
     channel_delete_time: 5
 };
 
