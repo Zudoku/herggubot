@@ -3,11 +3,14 @@ var async = require("async");
 var util = require('util');
 
 module.exports = {
-	lastRequestTime: null,
+	jobQueue: [],
+	queueTimeout: null,
 	initialize: function (config, callback) {
-		//this.query_time_limit = config.query_time_limit;
+		this.query_time_limit = config.query_time_limit;
+		this.debug_network = config.debug_network;
+    	this.virtual_server_id = config.virtual_server_id;
 		this.__client = new TeamSpeakClient(config.ts_ip);
-    	this.__login(config.serverquery_username, config.serverquery_password,config.virtual_server_id, function (err) {
+    	this.__login(config.serverquery_username, config.serverquery_password, config.virtual_server_id, function (err) {
     		if (err && typeof callback == "function")
     			return callback(err);
     		this.setNickname(config.nickname, function (err) {
@@ -19,8 +22,6 @@ module.exports = {
     			});
     		}.bind(this));
     	}.bind(this));
-    	this.debug_network = config.debug_network;
-    	this.virtual_server_id = config.virtual_server_id;
 	},
 	setNickname: function (nickname, callback) {
         this.__sendCommand("clientupdate", { client_nickname: nickname }, function (err) {
@@ -103,7 +104,6 @@ module.exports = {
 		}
 		if(maxClients > 0){
 			parameters.channel_flag_maxclients_unlimited = 0;
-
 		}
 		this.__sendCommand("channelcreate",parameters,function(err,res) { 
 			return callback(err,res);
@@ -228,19 +228,51 @@ module.exports = {
 				callback(err);
 		});
 	},
-	__sendCommand: function (command, arguments, callback) {
-		if(this.debug_network){
-			console.log("SEND: " + command + " " + JSON.stringify(arguments));
+	/*
+		job: function
+		delay: delay in ms
+	*/
+	__addToQueue: function (job, delay) {
+		var queueIsEmpty = this.jobQueue.length == 0;
+		this.jobQueue.push({ "job": job, delay: delay });
+		if (!this.queueTimeout) {
+			if (this.debug_network) {
+				var date = new Date();
+				console.log("[" + date.getMinutes() + ":" + date.getSeconds() + ":" + date.getMilliseconds() + "] STARTING PROCESS QUEUE LOOP");
+			}
+			this.__processQueue();
 		}
-		this.__client.send(command, arguments, function(err, response, rawResponse) {
-		    this.lastRequestTime = new Date();
-		    if (err)
-		    	console.log("Error while sending command: " + command + " Error: " + JSON.stringify(err));
-	        if (typeof callback == "function")
-	        	if(this.debug_network){
-					console.log("RECEIVE: " + util.inspect(response));
-				}
-	        	return callback(err, response);
-		}.bind(this));
+	},
+	__processQueue: function () {
+		if (this.jobQueue.length > 0) {
+			var nextJobObj = this.jobQueue.splice(0, 1)[0];
+			nextJobObj.job();
+			this.queueTimeout = setTimeout(function () {
+				this.queueTimeout = null;
+				this.__processQueue();
+			}.bind(this), nextJobObj.delay);
+		}
+	},
+	__sendCommand: function (command, arguments, callback) {
+		if (this.debug_network) {
+			var date = new Date();
+			console.log("[" + + date.getMinutes() + ":" + date.getSeconds() + ":" + date.getMilliseconds() + "] ADD TO QUEUE: " + command + " " + util.inspect(arguments));
+		}
+		this.__addToQueue(function (command, arguments, callback) {
+			if (this.debug_network) {
+				var date = new Date();
+				console.log("[" + date.getMinutes() + ":" + date.getSeconds() + ":" + date.getMilliseconds() + "] SEND: " + command + " " + util.inspect(arguments));
+			}
+			this.__client.send(command, arguments, function(err, response, rawResponse) {
+			    if (err)
+			    	console.log("Error while sending command: " + command + " Error: " + JSON.stringify(err));
+		        if (typeof callback == "function")
+		        	if (this.debug_network) {
+		        		var date = new Date();
+		        		console.log("[" + date.getMinutes() + ":" + date.getSeconds() + ":" + date.getMilliseconds() + "] RECEIVE: " + util.inspect(response));
+					}
+		        	return callback(err, response);
+			}.bind(this));
+		}.bind(this, command, arguments, callback), this.query_time_limit);
 	}
 };

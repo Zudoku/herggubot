@@ -8,6 +8,7 @@ var channelsMarkedForDeletion = [];
 var dbUtil = require('../databaseUtil');
 
 const error_reporter_name = "monitor-lsc";
+const teamspeak_channel_name_max_length = 40;
 
 module.exports = {
     start: function (herggubot) {

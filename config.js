@@ -11,6 +11,7 @@ config.nickname = "HerGGuBot";
 config.reset_database = false;
 config.database_path = "botdatabase";
 config.debug_network = false;
+config.query_time_limit = 1000; //Milliseconds
 
 config.bot_use_wrapper = true;
 config.bot_wrapper_restart_time = 2;
@@ -33,8 +34,8 @@ config.module_monitor_chat = {
 };
 
 config.tessu_stats_integration = {
-	enabled: true,
-	site_root: "yourtessustatsdomain.com/"
+    enabled: true,
+    site_root: "yourtessustatsdomain.com/"
 };
 
 config.module_monitor_channel_slots = {
