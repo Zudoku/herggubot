@@ -129,7 +129,7 @@ module.exports = {
                 module.onChatMessage(data);
             });
             var date = new Date();
-            var timestamp = "[" + + date.getMinutes() + ":" + date.getSeconds() + ":" + date.getMilliseconds() + "]";
+            var timestamp = "[" + date.getMinutes() + ":" + date.getSeconds() + ":" + date.getMilliseconds() + "]";
             switch(data.targetmode){
                 case 3: //Server chat
                     if(config.debug_network){
