@@ -76,6 +76,14 @@ module.exports = {
         //  channel_remove - (boolean) if should filter type CHANNEL_REMOVE log rows out
         app.get("/herggubot/api/serverlog", function(req, res){
         	database.all("SELECT * FROM serveractionlog;", function(err,rows){
+
+                //Handle error 
+                if(err){
+                    dbUtil.logError("Error while accessing /herggubot/api/serverlog " + util.inspect(err),error_reporter_name);
+                    rows = [];
+                }
+
+
         		var filteredRows = rows.filter(function(value){
 
                     if(req.query.index == undefined){
