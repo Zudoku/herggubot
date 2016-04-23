@@ -128,6 +128,7 @@ module.exports = {
             this.onMessageListeners.forEach(function (module) {
                 module.onChatMessage(data);
             });
+            var date = new Date();
             var timestamp = "[" + + date.getMinutes() + ":" + date.getSeconds() + ":" + date.getMilliseconds() + "]";
             switch(data.targetmode){
                 case 3: //Server chat
