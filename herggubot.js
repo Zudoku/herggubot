@@ -55,6 +55,12 @@ module.exports = {
                 callback();
                 return;
             }
+            //Set idle-kick protection
+            setInterval(function() {
+                ts3api.getClientsOnline(function(err, data) {
+
+                });
+            },4 * 60 * 1000);
 
             dbUtil.logAction("Bot loading modules");
             modulesLoaded = this.loadModules();
@@ -122,15 +128,16 @@ module.exports = {
             this.onMessageListeners.forEach(function (module) {
                 module.onChatMessage(data);
             });
+            var timestamp = "[" + + date.getMinutes() + ":" + date.getSeconds() + ":" + date.getMilliseconds() + "]";
             switch(data.targetmode){
                 case 3: //Server chat
                     if(config.debug_network){
-                        console.log("SERVER CHAT: " + data.invokername + " : " + data.msg);
+                        console.log(timestamp + " SERVER CHAT: " + data.invokername + " : " + data.msg);
                     }
                 break;
                 case 1: //Private chat
                     if(config.debug_network){
-                        console.log("PRIVATE CHAT: " + data.invokername + " : " + data.msg);
+                        console.log(timestamp + " PRIVATE CHAT: " + data.invokername + " : " + data.msg);
                     }
                 break;
             }
