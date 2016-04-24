@@ -8,7 +8,6 @@ module.exports = {
         this.bot = herggubot;
         this.ts3api = herggubot.ts3api;
         this.database = herggubot.database;
-        this.handleGetInactiveUsersCommand(46);
         console.log("Module admin-tools loaded!");
     },
     share: function () {
@@ -25,19 +24,22 @@ module.exports = {
             case "!afks_kick":
                 this.handleKickInactiveUsersCommand(data);
                 break;
+            case "!clid":
+                this.handleGetClientByIdCommand(data);
+                break;
             case "!help":
                 this.handleHelpCommand(data);
                 break;
         }
     },
     handleGetInactiveUsersCommand: function (invokerId) {
+        var self = this;
         function createOutputStrings(users) {
             //outputs holds all the 1024 char sized response blocks
             var outputs = [];
             var outputString = ["\n\n[B]Inactive clients:[/B]\n", "ID\t|\tUsername\t|\tReason", "-------------------------------------"];
             users.forEach(function (user) {
-                var userLink = "[URL=client://" + user.clid + "/" + user.client_unique_identifier + "~" + user.client_nickname + "]" + user.client_nickname + "[/URL]";
-                var rowString = user.clid + "\t[B]" + userLink  + "[/B]\t" + user.reason;
+                var rowString = user.clid + "\t" + self.createClientLink(user)  + "\t" + user.reason;
                 var tempArray = outputString.slice();
                 tempArray.push(rowString);
                 if (tempArray.join("\n").length > 1024) {
@@ -55,12 +57,12 @@ module.exports = {
         this.ts3api.sendClientMessage(invokerId, "Finding inactive users, this might take a while...");
         this.getInactiveUsers(function (err, users) {
             if (err)
-                return this.ts3api.sendClientMessage(invokerId, "Failed to get inactive users. Error: " + util.inspect(err));
-            this.lastInactiveClients = users;
+                return self.ts3api.sendClientMessage(invokerId, "Failed to get inactive users. Error: " + util.inspect(err));
+            self.lastInactiveClients = users;
             createOutputStrings(users).forEach(function (output) {
-                this.ts3api.sendClientMessage(invokerId, output);
-            }.bind(this));
-        }.bind(this));
+                self.ts3api.sendClientMessage(invokerId, output);
+            });
+        });
     },
     handleKickInactiveUsersCommand: function (data) {
         if (this.lastInactiveClients.length == 0)
@@ -89,11 +91,36 @@ module.exports = {
             this.ts3api.sendClientMessage(data.invokerid, "Successfully kicked inactive users from server.");
         }.bind(this));
     },
+    handleGetClientByIdCommand: function (data) {
+        var self = this;
+        function createOutputString(clients) {
+            var outputString = ["\n\n[B]Requested clients:[/B]\n", "ID\t|\tUser", "-------------------------------------"];
+            clients.forEach(function (client) {
+                var rowString = client.clid + "\t" + self.createClientLink(client);
+                outputString.push(rowString);
+            });
+            return outputString.join("\n");
+        }
+
+        var parts = data.msg.split(" ").slice(1);
+        if (parts.length != 1)
+            return this.ts3api.sendClientMessage(data.invokerid, "Wrong syntax, usage: !clid [clids]");
+        var clientIds = parts[0].split(",");
+        async.map(clientIds, function (clid, callback) {
+            self.ts3api.getClientById(clid, function (err, client) {
+                callback(err, client);
+            });
+        }, function (err, clients) {
+            if (err) return self.ts3api.sendClientMessage(data.invokerid, "Error finding clients. Error: " + util.inspect(err));
+            self.ts3api.sendClientMessage(data.invokerid, createOutputString(clients));
+        });
+    },
     handleHelpCommand: function (data) {
         var output = [
             "\n\nAvailable commands for module: [B]admin-tools[/B]:\n",
             "[B]!afks[/B] - Returns a list of inactive clients on the server.",
-            "[B]!afks_kick[/B] - Kicks all of the inactive clients. Requires !afks to be ran before it, you can whitelist people with the --ignore=[clids] parameter. Eg. --ignore=5,4"
+            "[B]!afks_kick[/B] - Kicks all of the inactive clients. Requires !afks to be ran before it, you can whitelist people with the --ignore=[clids] parameter. Eg. --ignore=5,4",
+            "[B]!clid[/B] - Returns the client links of given comma seperated client id list."
         ];
         this.ts3api.sendClientMessage(data.invokerid, output.join("\n"));
     },
@@ -111,7 +138,6 @@ module.exports = {
                             else
                                 return callback(err);
                         }
-                        detailedClient.clid = client.clid;
                         callback(err, detailedClient);
                     });
                 }, function (err, detailedClients) {
@@ -157,7 +183,7 @@ module.exports = {
                         client.reason = "Client is set to Away";
                         return true;
                     } else if (speakersMuted && idleTime >= 15 * 60 * 1000) { //Speakers muted and idle for 15 minutes
-                        client.reason = "Speakers muted and idle for " + formatIdleTime(idleTiem);
+                        client.reason = "Speakers muted and idle for " + formatIdleTime(idleTime);
                         return true;
                     } else if (idleTime >= 60 * 60 * 1000) { //Idle for 1 hour
                         client.reason = "Idle for " + formatIdleTime(idleTime);
@@ -184,5 +210,9 @@ module.exports = {
                 callback(null, flattenedClients);
             });
         });
+    },
+    createClientLink: function (client) {
+        //Replace spaces in name
+        return "[URL=client://" + client.clid + "/" + client.client_unique_identifier + "~" + client.client_nickname.replace(/ /g, "") + "]" + client.client_nickname + "[/URL]";
     }
 };
