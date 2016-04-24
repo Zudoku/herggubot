@@ -174,8 +174,11 @@ module.exports = {
 				return callback(err, res);
 		});
 	},
+	//Result also contains clientId in clid property
 	getClientById: function (clientId, callback) {
 		this.__sendCommand("clientinfo", { clid: clientId }, function (err, res) {
+			if (err) return callback(err);
+			res.clid = clientId;
 			return callback(err, res);
 		});
 	},
