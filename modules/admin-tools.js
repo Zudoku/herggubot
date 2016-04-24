@@ -8,6 +8,7 @@ module.exports = {
         this.bot = herggubot;
         this.ts3api = herggubot.ts3api;
         this.database = herggubot.database;
+        this.handleGetInactiveUsersCommand(46);
         console.log("Module admin-tools loaded!");
     },
     share: function () {
@@ -35,7 +36,8 @@ module.exports = {
             var outputs = [];
             var outputString = ["\n\n[B]Inactive clients:[/B]\n", "ID\t|\tUsername\t|\tReason", "-------------------------------------"];
             users.forEach(function (user) {
-                var rowString = user.clid + "\t[B]" + user.client_nickname  + "[/B]\t" + user.reason;
+                var userLink = "[URL=client://" + user.clid + "/" + user.client_unique_identifier + "~" + user.client_nickname + "]" + user.client_nickname + "[/URL]";
+                var rowString = user.clid + "\t[B]" + userLink  + "[/B]\t" + user.reason;
                 var tempArray = outputString.slice();
                 tempArray.push(rowString);
                 if (tempArray.join("\n").length > 1024) {
@@ -97,8 +99,40 @@ module.exports = {
     },
     getInactiveUsers: function (callback) {
         var self = this;
+        function getDetailedClientsInChannel(channelId, callback) {
+            self.ts3api.getClientsInChannel(channelId, function (err, clients) {
+                if (err) return callback(err);
+                async.map(clients, function (client, callback) {
+                    self.ts3api.getClientById(client.clid, function (err, detailedClient) {
+                        if (err) {
+                            //If we get invalid clientId it means the client isn't on the server anymore and we should ignore it
+                            if (err.msg == "invalid clientID")
+                                return callback();
+                            else
+                                return callback(err);
+                        }
+                        detailedClient.clid = client.clid;
+                        callback(err, detailedClient);
+                    });
+                }, function (err, detailedClients) {
+                    callback(err, detailedClients);
+                });
+            });
+        }
+        function formatIdleTime(milliseconds) {
+            var output = "[B]";
+            var minutes = Math.floor((milliseconds / 1000) / 60);
+            var hours = Math.floor(minutes / 60);
+            minutes -= hours * 60;
+
+            if (hours > 0) {
+                output += hours + "h ";
+            }
+            output += minutes + "min[/B]";
+            return output;
+        }
         function findSuitableClientsInChannel(channelId, callback) {
-            self.ts3api.getDetailedClientsInChannel(channelId, function (err, clients) {
+            getDetailedClientsInChannel(channelId, function (err, clients) {
                 if (err) return callback(err);
                 var suitableClients = clients.filter(function (client) {
                     var speakersMuted = client.client_output_muted == 1;
@@ -123,10 +157,10 @@ module.exports = {
                         client.reason = "Client is set to Away";
                         return true;
                     } else if (speakersMuted && idleTime >= 15 * 60 * 1000) { //Speakers muted and idle for 15 minutes
-                        client.reason = "Speakers muted and idle for 15 minutes";
+                        client.reason = "Speakers muted and idle for " + formatIdleTime(idleTiem);
                         return true;
                     } else if (idleTime >= 60 * 60 * 1000) { //Idle for 1 hour
-                        client.reason = "Idle for 1 hour";
+                        client.reason = "Idle for " + formatIdleTime(idleTime);
                         return true;
                     } else {
                         return false;
