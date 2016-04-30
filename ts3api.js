@@ -71,20 +71,6 @@ module.exports = {
 			callback(null, targetClients);
 		});
 	},
-	getDetailedClientsInChannel: function (channelId, callback) {
-		this.getClientsInChannel(channelId, function (err, clients) {
-			if (err) return callback(err);
-			async.map(clients, function (client, callback) {
-				this.getClientById(client.clid, function (err, detailedClient) {
-					if (err) return callback(err);
-					detailedClient.clid = client.clid;
-					callback(err, detailedClient);
-				});
-			}.bind(this), function (err, detailedClients) {
-				callback(err, detailedClients);
-			});
-		}.bind(this));
-	},
 	getClientsOnline: function (callback) {
 		this.__sendCommand("clientlist", {}, function (err, res) {
 			var results = res.constructor == Array ? res : [res];
@@ -188,8 +174,11 @@ module.exports = {
 				return callback(err, res);
 		});
 	},
+	//Result also contains clientId in clid property
 	getClientById: function (clientId, callback) {
 		this.__sendCommand("clientinfo", { clid: clientId }, function (err, res) {
+			if (err) return callback(err);
+			res.clid = clientId;
 			return callback(err, res);
 		});
 	},
