@@ -51,6 +51,13 @@ module.exports = {
 
     },
     onChatMessage: function (data) {
+        if(data == undefined || data.msg == undefined || data.msg.split(" ") == undefined || data.msg.split(" ").length <= 0){
+            var errormessage = "Could not split message: " + util.inspect(data);
+            dbUtil.logError(errormessage,error_reporter_name);
+
+            return;
+        }
+
         var command = data.msg.split(" ")[0];
         switch(data.targetmode){
             case 3: //Server chat

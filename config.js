@@ -1,0 +1,68 @@
+var config = {};
+
+config.virtual_server_id = 1; 
+config.ts_ip = "ExampleTSIP";
+config.serverquery_username = "ExampleUsername";
+config.serverquery_password = "ExamplePassword";
+config.web_admin_password = examplePassword; //Change this
+
+config.nickname = "HerGGuBot";
+
+config.reset_database = false;
+config.database_path = "botdatabase";
+config.debug_network = false;
+config.query_time_limit = 300; //Milliseconds
+
+config.bot_use_wrapper = true;
+config.bot_wrapper_restart_time = 2;
+
+
+//------------------------------------
+// MODULES
+//------------------------------------
+config.module_monitor_chat = {
+    enabled: true,
+    spam_message : "Please do not spam the server chat.",
+    ban_punish: true,
+    ban_length: 60,
+    spam_limit: 4,
+    spam_timeframe: 5000
+};
+
+config.module_mute_user = {
+    enabled: true,
+    admin_server_groups: [6],
+    muted_server_group: 12,
+    mute_length: 10,
+    mute_reason: "default mute reason"
+};
+
+config.module_admin_tools = {
+    enabled: true,
+    inactive_users_servergroup_whitelist: [],
+    inactive_kick_message: "Add kick message here"
+};
+
+config.tessu_stats_integration = {
+    enabled: true,
+    site_root: "yourtessustatsdomain.com/"
+};
+
+config.module_monitor_channel_slots = {
+    enabled: false,
+    channel_delete_time: 5
+};
+
+config.module_extra_logs = {
+    enabled: true
+};
+
+config.web_interface = {
+    enabled: true,
+    launch_bot_in_startup : true,
+    port: 9090,
+    use_wrapper : true,
+    wrapper_restart_time : 0.25
+};
+
+module.exports = config;
