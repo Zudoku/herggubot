@@ -1,6 +1,9 @@
 var config = require('../config');
 var util = require('util');
 var async = require("async");
+var dbUtil = require('../databaseUtil');
+
+const error_reporter_name = "module-admin-tools";
 
 module.exports = {
     lastInactiveClients: [],
@@ -16,6 +19,14 @@ module.exports = {
         };
     },
     onChatMessage: function (data) {
+
+        if(data == undefined || data.msg == undefined || data.msg.split(" ") == undefined || data.msg.split(" ").length <= 0){
+            var errormessage = "Could not split message: " + util.inspect(data);
+            dbUtil.logError(errormessage,error_reporter_name);
+
+            return;
+        }
+
         var command = data.msg.split(" ")[0];
         switch (command) {
             case "!afks":
