@@ -94,6 +94,7 @@ module.exports = {
         var kickMessage = config.module_admin_tools.inactive_kick_message;
         async.each(clientsToKick, function (client, callback) {
             this.ts3api.kickClientFromServer(client.clid, kickMessage, function (err) {
+                dbUtil.logAction("Kicked " + util.inspect(client) + " for being inactive (" + kickMessage + ")");
                 callback(err);
             });
         }.bind(this), function (err) {

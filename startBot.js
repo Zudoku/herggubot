@@ -1,4 +1,7 @@
 var herggubot = require('./herggubot');
+var util = require('util');
+var dbUtil = require('./databaseUtil');
+
 
 herggubot.launch(function(){
 	
@@ -17,5 +20,11 @@ process.on('message',(m) => {
 		}
 	}
 	
+});
+//Remember to log 
+process.on('uncaughtException', function(e) {
+    dbUtil.logError(e.stack + " " + util.inspect(e),"Herggubot-???");
+    //Log errors to error log 
+    process.exit(99);
 });
 

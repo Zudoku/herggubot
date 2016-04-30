@@ -1,5 +1,9 @@
 var config = require('../config');
 var util = require('util');
+var dbUtil = require('../databaseUtil');
+
+const error_reporter_name = "module-mute-user";
+
 
 module.exports = {
     start: function (herggubot) {
@@ -10,7 +14,7 @@ module.exports = {
         console.log("Module mute-user loaded!");
     },
     share: function () {
-    	this.getMutedUsers(function (users) {
+    	return this.getMutedUsers(function (err,users) {
     		return {
     			module: "mute-user",
     			mutedUsers: users
@@ -18,6 +22,14 @@ module.exports = {
     	});
     },
     onChatMessage: function (data) {
+
+        if(data == undefined || data.msg == undefined || data.msg.split(" ") == undefined || data.msg.split(" ").length <= 0){
+            var errormessage = "Could not split message: " + util.inspect(data);
+            dbUtil.logError(errormessage,error_reporter_name);
+
+            return;
+        }
+
     	var command = data.msg.split(" ")[0];
         switch (command) {
             case "!mute":
@@ -52,12 +64,16 @@ module.exports = {
                     if (target.client_servergroups == config.module_mute_user.muted_server_group) return callback("User is already muted.");
                     this.ts3api.addClientServerGroup(target.client_database_id, config.module_mute_user.muted_server_group, function (err) {
                         if (err) return callback(err);
+                        //Calculate expiration date
                         var expireDate = new Date();
                         expireDate = new Date(expireDate.getTime() + 1000 * length);
+                        //Insert into database
                         this.database.run("INSERT INTO mutedusers (expires,databaseid,username) values (?,?,?);",
                             expireDate, target.client_database_id, target.client_nickname);
                         this.ts3api.sendClientMessage(targetUser.clid,
                             "\n[B][COLOR=#ff0000]You have been muted from the server chat.[/COLOR][/B]\nReason: " + message + "\nYour mute will expire in: [B]" + length + "[/B] seconds.");
+                        // Log action
+                        dbUtil.logAction("Muted " + util.inspect(targetUser) + " for " + length + " seconds.");
                         callback();
                     }.bind(this));
                 }.bind(this));
@@ -83,6 +99,8 @@ module.exports = {
                         this.ts3api.sendClientMessage(targetUser.clid, "You have been unmuted and are able to talk in the server chat again.");
                     }
                     this.database.run("DELETE FROM mutedusers WHERE databaseid=?;", targetDatabaseId);
+                    //Log action
+                    dbUtil.logAction("Unmuted " + util.inspect(targetUser));
                     callback();
                 }.bind(this));
             }.bind(this));
@@ -170,7 +188,7 @@ module.exports = {
     },
     getMutedUsers: function (callback) {
         this.database.all("SELECT * FROM mutedusers;", function(err, rows) {
-            callback(err, rows);
+            return callback(err, rows);
         });
     },
     checkExpiredMutes: function () {

@@ -1,6 +1,7 @@
 var config = require('./config');
 var sqlite3 = require('sqlite3').verbose();
 var database = new sqlite3.Database(config.database_path);
+var fs = require('fs');
 
 module.exports = {
 	resetDatabase : function(){
@@ -68,5 +69,18 @@ module.exports = {
     },
     logAction : function(actionString) {
         database.run("INSERT INTO actionlog (text,date) VALUES (?,?)",actionString,new Date());
+    },
+    writeConfigJS : function(file){
+    	var stream = fs.createWriteStream("config.js");
+    	stream.once('open', function(fd) {
+  			stream.write(file.content);
+  			stream.end();
+		});
+		stream.on('finish', () => {
+  			logAction("Finished writing config.js");
+		});
+		stream.on('error', () => {
+  			logError("Error while writing config.js","database-util");
+		});
     }
 };
