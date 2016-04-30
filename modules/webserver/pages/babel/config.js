@@ -16,20 +16,20 @@ var Config = React.createClass({
       }.bind(this)
     });
   },
-  uploadConfig: function(event) {
+  uploadConfig: function(event)Â {
     console.log($("#configTextArea")[0].value);
     var configPayLoad = $("#configTextArea")[0].value;
     var password = prompt("Password","");
     $.ajax({
-      url: "/herggubot/api/uploadconfig",
+      url: "/herggubot/api/upload-config",
       dataType: 'json',
       type: "POST",
-      data: {config: configPayLoad, pw: password},
+      data: {payload: configPayLoad, pw : password},
       success: function(data) {
         if(data.success == true){
           alert("Config uploaded! Restart the bot for it to take effect.");
         }else{
-          alert("Config not uploaded correctly.");
+          alert("Config not uploaded correctly. " + data.reason);
         }
       }.bind(this),
       error: function(xhr, status, err) {
@@ -44,14 +44,14 @@ var Config = React.createClass({
   render: function() {
 
     return (
-    	<div>
-      		<textarea id="configTextArea" className="form-control" rows="30" onChange={this.textAreaChanged} defaultValue={JSON.stringify(this.state.config, null, ' ')}>
-        		
-      		</textarea>
-      		Some values are hidden and can't be modified. Only JSON is accepted.
+      <div>
+          <textarea id="configTextArea" className="form-control" rows="30" onChange={this.textAreaChanged} defaultValue={JSON.stringify(this.state.config, null, ' ')}>
+            
+          </textarea>
+          
           <hr/>
           <button type="button" onClick={this.uploadConfig} className="btn btn-success">Save</button>
-      	</div>
+        </div>
 
     );
   }

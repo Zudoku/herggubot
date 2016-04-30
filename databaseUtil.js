@@ -73,14 +73,20 @@ module.exports = {
     writeConfigJS : function(file){
     	var stream = fs.createWriteStream("config.js");
     	stream.once('open', function(fd) {
-  			stream.write(file.content);
-  			stream.end();
+
+    		if(file == undefined ||Â file.content == undefined){
+    			module.exports.logError("Error while writing config.js , content is null","database-util");
+    		} else {
+    			stream.write(file.content);
+  				stream.end();
+    		}
+  			
 		});
 		stream.on('finish', () => {
-  			logAction("Finished writing config.js");
+  			module.exports.logAction("Finished writing config.js");
 		});
 		stream.on('error', () => {
-  			logError("Error while writing config.js","database-util");
+  			module.exports.logError("Error while writing config.js","database-util");
 		});
     }
 };

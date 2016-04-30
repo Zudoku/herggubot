@@ -1,6 +1,6 @@
 {
   "name": "HerGGuBot",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Module based Node.js TeamSpeak 3 bot",
   "author": "Arttu <arttu.siren@gmail.com>",
   "license": "SEE LICENSE IN 'LICENSE' FILE (MIT)",

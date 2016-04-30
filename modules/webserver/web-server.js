@@ -5,6 +5,8 @@ var config = require('../../config');
 var util = require('util');
 var wrapper = require('../../wrapper');
 var dbUtil = require('../../databaseUtil');
+var fs = require('fs');
+var bodyParser = require('body-parser');
 
 var database = new sqlite3.Database(config.database_path);
 
@@ -48,14 +50,15 @@ process.on('uncaughtException', function(e) {
 
 
 module.exports = {
-	start: function () {
+    start: function () {
 
-        app.use("/herggubot/", function(req,res,next){
-            if(config.module_extra_logs.enabled){
-                //herggubot.logAction("Web-server Dashboard accessed by " + req.ip);
-            }
-            next();
-        });
+
+        app.use(bodyParser.json());
+        //wtf ? this populates the body in POST requests
+        app.use(bodyParser.urlencoded({
+            extended: true
+        }));
+        
 
         app.use("/herggubot/", express.static(__dirname + '/pages'));
 
@@ -75,7 +78,7 @@ module.exports = {
         //  channel_edit - (boolean) if should filter type CHANNEL_EDIT log rows out
         //  channel_remove - (boolean) if should filter type CHANNEL_REMOVE log rows out
         app.get("/herggubot/api/serverlog", function(req, res){
-        	database.all("SELECT * FROM serveractionlog;", function(err,rows){
+            database.all("SELECT * FROM serveractionlog;", function(err,rows){
 
                 //Handle error 
                 if(err){
@@ -84,60 +87,60 @@ module.exports = {
                 }
 
 
-        		var filteredRows = rows.filter(function(value){
+                var filteredRows = rows.filter(function(value){
 
                     if(req.query.index == undefined){
                         return true;
                     }
 
-        			if(req.query.search != undefined && req.query.search != "" && req.query.regex_search == 'false'){
-        				var valueLC = value.text.toLowerCase();
-        				var searchLC = req.query.search.toLowerCase();
-        				if(valueLC.indexOf(searchLC) == -1){
-        					return false;
-        				}
-        			}else if(req.query.search != undefined && req.query.search != "" && req.query.regex_search == 'true'){
+                    if(req.query.search != undefined && req.query.search != "" && req.query.regex_search == 'false'){
+                        var valueLC = value.text.toLowerCase();
+                        var searchLC = req.query.search.toLowerCase();
+                        if(valueLC.indexOf(searchLC) == -1){
+                            return false;
+                        }
+                    }else if(req.query.search != undefined && req.query.search != "" && req.query.regex_search == 'true'){
 
-        				var isValid;
-						try { 
-    						new RegExp(req.query.search, 'g');
-    						isValid = true;
-						}catch(e) {
-    						isValid = false;
-    						return false;
-						}
-						if(isValid){
-							var regex = new RegExp(req.query.search, 'g');
-        					if(value.text.match(regex) == null)
-        						return false;
-        					}
-						}
-        			switch(value.actiontype){
-        				case "CLIENT_JOIN":
-        					return (req.query.client_join != undefined && req.query.client_join=='false');
-        				break;
-        				case "CLIENT_MOVE":
-        					return (req.query.client_move != undefined && req.query.client_move=='false');
-        				break;
-        				case "CLIENT_LEAVE":
-        					return (req.query.client_leave != undefined && req.query.client_leave=='false');
-        				break;
-        				case "SERVER_EDIT":
-        					return (req.query.server_edit != undefined && req.query.server_edit=='false');
-        				break;
-        				case "CHANNEL_CREATE":
-        					return (req.query.channel_create != undefined && req.query.channel_create=='false');
-        				break;
-        				case "CHANNEL_EDIT":
-        					return (req.query.channel_edit != undefined && req.query.channel_edit=='false');
-        				break;
-        				case "CHANNEL_REMOVE":
-        					return (req.query.channel_remove != undefined && req.query.channel_remove=='false');
-        				break;
-        				default:
-        					return false;
-        			}
-        		}.bind(this));
+                        var isValid;
+                        try { 
+                            new RegExp(req.query.search, 'g');
+                            isValid = true;
+                        }catch(e) {
+                            isValid = false;
+                            return false;
+                        }
+                        if(isValid){
+                            var regex = new RegExp(req.query.search, 'g');
+                            if(value.text.match(regex) == null)
+                                return false;
+                            }
+                        }
+                    switch(value.actiontype){
+                        case "CLIENT_JOIN":
+                            return (req.query.client_join != undefined && req.query.client_join=='false');
+                        break;
+                        case "CLIENT_MOVE":
+                            return (req.query.client_move != undefined && req.query.client_move=='false');
+                        break;
+                        case "CLIENT_LEAVE":
+                            return (req.query.client_leave != undefined && req.query.client_leave=='false');
+                        break;
+                        case "SERVER_EDIT":
+                            return (req.query.server_edit != undefined && req.query.server_edit=='false');
+                        break;
+                        case "CHANNEL_CREATE":
+                            return (req.query.channel_create != undefined && req.query.channel_create=='false');
+                        break;
+                        case "CHANNEL_EDIT":
+                            return (req.query.channel_edit != undefined && req.query.channel_edit=='false');
+                        break;
+                        case "CHANNEL_REMOVE":
+                            return (req.query.channel_remove != undefined && req.query.channel_remove=='false');
+                        break;
+                        default:
+                            return false;
+                    }
+                }.bind(this));
 
                 filteredRows.sort(function(a,b){
                     return b.date - a.date;
@@ -151,7 +154,7 @@ module.exports = {
                 response.logs = filteredRows.splice(req.query.index * chunkAmount , chunkAmount);
                 res.send(response);
 
-        	});
+            });
         }.bind(this));
         // API for serverchat logs
         // Returns serverchat logs in an array
@@ -159,7 +162,7 @@ module.exports = {
         // args: 
         //  index - (int) Where to start retrieving the logs (chunk index) , 0 1 2 ...
         app.get("/herggubot/api/serverchat", function(req, res){
-        	database.all("SELECT * FROM serverchatlog;", function(err,rows){
+            database.all("SELECT * FROM serverchatlog;", function(err,rows){
 
                 if(req.query.index == undefined){
                     res.send([]);
@@ -171,7 +174,7 @@ module.exports = {
                 });
                 response.logs = rows.splice(req.query.index * chunkAmount , chunkAmount);
                 res.send(response);
-        	});
+            });
         }.bind(this));
         // API for private chat logs
         // Returns private chat logs in an array
@@ -179,8 +182,8 @@ module.exports = {
         // args: 
         //  index - (int) Where to start retrieving the logs (chunk index) , 0 1 2 ...
         app.get("/herggubot/api/privatechat", function(req, res){
-        	database.all("SELECT * FROM privatechatlog;", function(err,rows){
-        		if(req.query.index == undefined){
+            database.all("SELECT * FROM privatechatlog;", function(err,rows){
+                if(req.query.index == undefined){
                     res.send([]);
                     return;
                 }
@@ -191,7 +194,7 @@ module.exports = {
                 });
                 response.logs = rows.splice(req.query.index * chunkAmount , chunkAmount);
                 res.send(response);
-        	});
+            });
         }.bind(this));
         // API for bot action log
         // Returns bot action logs in an array
@@ -199,8 +202,8 @@ module.exports = {
         // args: 
         //  index - (int) Where to start retrieving the logs (chunk index) , 0 1 2 ...
         app.get("/herggubot/api/actionlog", function(req, res){
-        	database.all("SELECT * FROM actionlog;", function(err,rows){
-        		if(req.query.index == undefined){
+            database.all("SELECT * FROM actionlog;", function(err,rows){
+                if(req.query.index == undefined){
                     res.send([]);
                     return;
                 }
@@ -210,7 +213,7 @@ module.exports = {
                 });
                 response.logs = rows.splice(req.query.index * chunkAmount , chunkAmount);
                 res.send(response);
-        	});
+            });
         }.bind(this));
         // API for bot error log
         // Returns bot error logs in an array
@@ -233,20 +236,22 @@ module.exports = {
         }.bind(this));
 
         app.get("/", function(req, res){
-        	res.status(404).end();
+            res.status(404).end();
         });
         // API for config
         // Returns JSON object with current config with sensitive information replaced
         app.get("/herggubot/api/config", function(req, res){
-        	var safeConfig = require('../../config');
-        	safeConfig.ts_ip = "CENSORED";
-        	safeConfig.database_path = "CENSORED";
-        	safeConfig.serverquery_username = "CENSORED";
-        	safeConfig.serverquery_password = "CENSORED";
-            safeConfig.web_admin_password = "CENSORED";
+            var safeConfig = require('../../config');
+            //We clone the object so the original doesn't change
+            safeConfig = JSON.parse(JSON.stringify(safeConfig));
+            safeConfig.ts_ip = "";
+            safeConfig.database_path = "";
+            safeConfig.serverquery_username = "";
+            safeConfig.serverquery_password = "";
+            safeConfig.web_admin_password = "";
 
-        	res.send(JSON.stringify(safeConfig, null, 4));
-        }.bind(this));
+            res.send(JSON.stringify(safeConfig, null, 4));
+        });
         // API for config
         // Returns JSON object with information about the bot
         app.get("/herggubot/api/modules", function(req, res){
@@ -256,8 +261,8 @@ module.exports = {
             } else {
                 response = [{}];
             }
-        	
-        	res.send(JSON.stringify(response, null, 4));
+            
+            res.send(JSON.stringify(response, null, 4));
         }.bind(this));
 
         app.get("/herggubot/api/restart", function(req, res){
@@ -287,7 +292,7 @@ module.exports = {
                 } else {
                     userShutDownBot = false;
                     dbUtil.logAction("Starting bot");
-                    module.exports.startBot();
+                    module.exports.startBot("Toggle from web-interface");
 
                     res.send(JSON.stringify({success : true}, null, 4));
                 }
@@ -297,7 +302,7 @@ module.exports = {
             } 
         }.bind(this));
 
-        app.get("/herggubot/api/refreshLSC", function(req, res){
+        app.get("/herggubot/api/refreshLSC", function(req, res) {
 
             if(botProcess != undefined){
                 botProcess.send({msg : "refreshLSC"});
@@ -308,13 +313,35 @@ module.exports = {
 
             
         }.bind(this));
+        // Body should be the following (JSON)
+        //{
+        // pw : contains the password
+        // payload : contains the file contents
+        //}
+        app.post("/herggubot/api/upload-config", function(req, res){
+
+            var body = req.body;
+            if(config.web_interface.allow_config_upload) {
+                if(body.pw == config.web_admin_password) {
+                    dbUtil.writeConfigJS({content : body.payload})
+                    res.send(JSON.stringify({success : true}));
+                } else {
+                    dbUtil.logError("Wrong password while trying to upload config.js",error_reporter_name);
+                    res.send(JSON.stringify({success : false, reason : "Wrong password" }, null, 4));
+                }
+            } else {
+                dbUtil.logError("Uploading config.js has been disabled in the settings - Someone tried to upload a new configuration",error_reporter_name);
+                res.send(JSON.stringify({success : false, reason : "Uploading config.js has been disabled in the settings" }, null, 4));
+            }
+ 
+        }.bind(this));
 
         app.listen(config.web_interface.port);
         console.log("Webserver started at port " + config.web_interface.port);
         dbUtil.logAction("Web-server started at port " + config.web_interface.port);
         
         if(config.web_interface.launch_bot_in_startup){
-            module.exports.startBot();
+            module.exports.startBot("Initial launch because of web_interface.launch_bot_in_startup flag");
         }
 
     },
@@ -332,7 +359,8 @@ module.exports = {
         botProcess = undefined;
         botInfo = undefined;
     },
-    startBot: function(){
+    startBot: function(reason){
+        dbUtil.logAction("Attempting to launch bot, reason: " + reason);
         botProcess = wrapper.spawnBotInstance(module.exports.botClose);
         botProcess.on('message',(m) => {
             if(m.msg == "readonlybot"){
@@ -344,7 +372,7 @@ module.exports = {
     },
     restartBot : function(){
         module.exports.shutDownBot();
-        setTimeout(module.exports.startBot,5000);
+        setTimeout(module.exports.startBot,"Restart from web-interface",5000);
     },
     botClose : function(code, signal){
         //console.log("Bot process closed " + code + " " + signal);
@@ -355,7 +383,7 @@ module.exports = {
             botProcess = undefined;
             setTimeout(function(){
                 if(config.bot_use_wrapper && botProcess == undefined){
-                    module.exports.startBot();
+                    module.exports.startBot("Automatic restart after crash");
                 } else {
                     dbUtil.logError("Automatic restart will not launch bot because process is defined (bot is already running)",error_reporter_name);
                 }
