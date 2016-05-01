@@ -74,7 +74,7 @@ module.exports = {
     	var stream = fs.createWriteStream("config.js");
     	stream.once('open', function(fd) {
 
-    		if(file == undefined ||Â file.content == undefined){
+    		if(file == undefined || file.content == undefined){
     			module.exports.logError("Error while writing config.js , content is null","database-util");
     		} else {
     			stream.write(file.content);
