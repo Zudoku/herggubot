@@ -14,22 +14,11 @@ module.exports = {
         console.log("Module mute-user loaded!");
     },
     share: function () {
-    	return this.getMutedUsers(function (err,users) {
-    		return {
-    			module: "mute-user",
-    			mutedUsers: users
-    		};
-    	});
+    	return {
+			module: "mute-user"
+        };
     },
     onChatMessage: function (data) {
-
-        if(data == undefined || data.msg == undefined || data.msg.split(" ") == undefined || data.msg.split(" ").length <= 0){
-            var errormessage = "Could not split message: " + util.inspect(data);
-            dbUtil.logError(errormessage,error_reporter_name);
-
-            return;
-        }
-
     	var command = data.msg.split(" ")[0];
         switch (command) {
             case "!mute":
@@ -54,7 +43,8 @@ module.exports = {
              });
              if (targetUser) {
                 this.ts3api.getClientById(targetUser.clid, function (err, target) {
-                    if (err) return callback(err);
+                    if (err)
+                        return callback(err);
                     if (target.client_servergroups == config.module_mute_user.muted_server_group) return callback("User is already muted.");
                     this.ts3api.addClientServerGroup(target.client_database_id, config.module_mute_user.muted_server_group, function (err) {
                         if (err) return callback(err);
@@ -113,10 +103,12 @@ module.exports = {
         if (parts.length > 3)
             muteReason = parts.slice(3, parts.length).join(" "); //Convert rest of arguments to reason message
         this.bot.isClientAdmin(data.invokerid, function (err, adminStatus) {
+            if (err)
+                return this.ts3api.sendClientMessage(data.invokerid, "Failed to check invoker's admin status. Error: " + util.inspect(err));
             if (adminStatus) {
                 this.muteUser(targetName, muteLength, muteReason, function (err) {
                     if (err)
-                        this.ts3api.sendClientMessage(data.invokerid, "Failed to !mute user " + targetName + ". Error: " + err);
+                        this.ts3api.sendClientMessage(data.invokerid, "Failed to !mute user " + targetName + ". Error: " + util.inspect(err));
                     else
                         this.ts3api.sendClientMessage(data.invokerid, "Successfully muted user " + targetName + " for " + muteLength + " seconds.");
                 }.bind(this));
@@ -131,9 +123,9 @@ module.exports = {
             return this.ts3api.sendClientMessage(data.invokerid, "Invalid parameters. Usage: !unmute <target_name>");
         var targetName = parts[1];
         this.bot.isClientAdmin(data.invokerid, function (err, adminStatus) {
-            if (err) return this.ts3api.sendClientMessage(data.invokerid, "Failed to check invoker's admin status. Error: " + err);
+            if (err) return this.ts3api.sendClientMessage(data.invokerid, "Failed to check invoker's admin status. Error: " + util.inspect(err));
             this.ts3api.getClientsByName(targetName, function (err, result) {
-                if (err) return this.ts3api.sendClientMessage(data.invokerid, "Error finding user " + targetName + ". Error: " + err);
+                if (err) return this.ts3api.sendClientMessage(data.invokerid, "Error finding user " + targetName + ". Error: " + util.inspect(err));
                 var targetUser = null;
                 //Loop through results looking for an exact match in case getClientsByName returns multiple
                 result.forEach(function (r) {
@@ -142,10 +134,10 @@ module.exports = {
                 });
                 if (targetUser) {
                     this.ts3api.getClientById(targetUser.clid, function (err, client) {
-                        if (err) return this.ts3api.sendClientMessage(data.invokerid, "Error getting user with id " + targetUser.clid + ". Error: " + err);
+                        if (err) return this.ts3api.sendClientMessage(data.invokerid, "Error getting user with id " + targetUser.clid + ". Error: " + util.inspect(err));
                         this.unMuteUser(client.client_database_id, function (err) {
                             if (err) {
-                                this.ts3api.sendClientMessage(data.invokerid, "Error unmuting user " + targetName + ". Error: " + err);
+                                this.ts3api.sendClientMessage(data.invokerid, "Error unmuting user " + targetName + ". Error: " + util.inspect(err));
                             } else {
                                 this.ts3api.sendClientMessage(data.invokerid, "Successfully unmuted user " + targetName + ".");
                             }

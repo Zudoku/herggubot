@@ -193,6 +193,8 @@ module.exports = {
 	},
 	getClientsByName: function (clientName, callback) {
 		this.__sendCommand("clientfind", { pattern: clientName }, function (err, res) {
+			if (err)
+				return callback(err);
 			var results = res.constructor == Array ? res : [res];
 			return callback(err, results);
 		});
