@@ -16,7 +16,7 @@ var Config = React.createClass({
       }.bind(this)
     });
   },
-  uploadConfig: function(event)Â {
+  uploadConfig: function(event) {
     console.log($("#configTextArea")[0].value);
     var configPayLoad = $("#configTextArea")[0].value;
     var password = prompt("Password","");
@@ -46,9 +46,9 @@ var Config = React.createClass({
     return (
       <div>
           <textarea id="configTextArea" className="form-control" rows="30" onChange={this.textAreaChanged} defaultValue={JSON.stringify(this.state.config, null, ' ')}>
-            
+
           </textarea>
-          
+
           <hr/>
           <button type="button" onClick={this.uploadConfig} className="btn btn-success">Save</button>
         </div>
