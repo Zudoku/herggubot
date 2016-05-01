@@ -1,10 +1,10 @@
 var config = {};
 
-config.virtual_server_id = 1; 
+config.virtual_server_id = 1;
 config.ts_ip = "ExampleTSIP";
 config.serverquery_username = "ExampleUsername";
 config.serverquery_password = "ExamplePassword";
-config.web_admin_password = "examplePassword"; 
+config.web_admin_password = "examplePassword";
 
 config.nickname = "HerGGuBot";
 

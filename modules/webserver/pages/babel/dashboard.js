@@ -5,7 +5,7 @@ var DashBoard = React.createClass({
   isActive: function(tab){
     if(this.state.state == tab){
       return "active";
-    } 
+    }
     else{
       return "";
     }
@@ -16,26 +16,7 @@ var DashBoard = React.createClass({
       this.refs.logs.loadLogsFromServer();
       this.forceUpdate();
     }.bind(this));
-    
-  },
-  tryToRefreshLSC: function(event){
-    $.ajax({
-      url: "/herggubot/api/refreshLSC",
-      dataType: 'json',
-      type: "GET",
-      data: {},
-      success: function(data) {
-        if(data.success == true){
-          alert("Refreshing!");
-        }else{
-          alert("Refresh not successful, bot is offline");
-        }
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-        alert("Refresh not successful");
-      }.bind(this)
-    });
+
   },
   tryToRestart: function(event){
     var password = prompt("Password","");
@@ -85,8 +66,8 @@ var DashBoard = React.createClass({
         <div>
           <button type="button" onClick={this.tryToRestart} className="btn btn-danger rightPadding">Restart Bot</button>
           <button type="button" onClick={this.tryToToggle} className="btn btn-danger rightPadding">Toggle Bot</button>
-          <button type="button" onClick={this.tryToRefreshLSC} className="btn btn-danger rightPadding">Reload channel module</button>
         </div>
+        <hr/>
         <div id="infobox"> </div>
         <hr/>
         <ul className="nav nav-tabs">
@@ -225,7 +206,7 @@ var ServerLog = React.createClass({
   componentDidMount: function() {
     this.loadLogsFromServer();
   },
-  actionConfigChanged: function(event) {    
+  actionConfigChanged: function(event) {
     var value = $(event.target)[0].checked;
     var field = $(event.target).attr("data-config");
     var newState = this.state;
@@ -253,7 +234,7 @@ var ServerLog = React.createClass({
       if($("#search")[0] != undefined && $("#search")[0].value == ""){
          $("#search")[0].value = this.state.action_settings.search;
       }
-     
+
     }
   },
   render: function() {
