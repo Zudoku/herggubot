@@ -43,12 +43,6 @@ module.exports = {
                 break;
         }
     },
-    isUserAdmin: function (userId, callback) {
-        this.ts3api.getClientById(userId, function (err, client) {
-            if (err) return callback(err);
-            callback(null, config.module_mute_user.admin_server_groups.indexOf(client.client_servergroups) > -1);
-        }.bind(this));
-    },
     muteUser: function (targetName, length, message, callback) {
         this.ts3api.getClientsByName(targetName, function (err, result) {
              if (err) return callback(err);
@@ -118,7 +112,7 @@ module.exports = {
         var muteReason = config.module_mute_user.mute_reason_msg;
         if (parts.length > 3)
             muteReason = parts.slice(3, parts.length).join(" "); //Convert rest of arguments to reason message
-        this.isUserAdmin(data.invokerid, function (err, adminStatus) {
+        this.bot.isClientAdmin(data.invokerid, function (err, adminStatus) {
             if (adminStatus) {
                 this.muteUser(targetName, muteLength, muteReason, function (err) {
                     if (err)
@@ -136,7 +130,7 @@ module.exports = {
         if (parts.length < 2)
             return this.ts3api.sendClientMessage(data.invokerid, "Invalid parameters. Usage: !unmute <target_name>");
         var targetName = parts[1];
-        this.isUserAdmin(data.invokerid, function (err, adminStatus) {
+        this.bot.isClientAdmin(data.invokerid, function (err, adminStatus) {
             if (err) return this.ts3api.sendClientMessage(data.invokerid, "Failed to check invoker's admin status. Error: " + err);
             this.ts3api.getClientsByName(targetName, function (err, result) {
                 if (err) return this.ts3api.sendClientMessage(data.invokerid, "Error finding user " + targetName + ". Error: " + err);

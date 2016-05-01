@@ -123,6 +123,12 @@ module.exports = {
             }
         });
     },
+    isClientAdmin: function (clientId, callback) {
+        this.ts3api.getClientById(clientId, function (err, client) {
+            if (err) return callback(err);
+            callback(null, config.admin_server_groups.indexOf(client.client_servergroups) > -1);
+        }.bind(this));
+    },
     handleChatMessages: function () {
         this.ts3api.registerListener("textmessage", function(data) {
             if (data == undefined || data.msg == undefined || data.msg.split(" ") == undefined || data.msg.split(" ").length <= 0){
