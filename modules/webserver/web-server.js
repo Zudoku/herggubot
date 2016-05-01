@@ -336,7 +336,7 @@ module.exports = {
  
         }.bind(this));
 
-        app.listen(config.web_interface.port);
+        app.listen(config.web_interface.port,config.web_interface.webserver_bind);
         console.log("Webserver started at port " + config.web_interface.port);
         dbUtil.logAction("Web-server started at port " + config.web_interface.port);
         

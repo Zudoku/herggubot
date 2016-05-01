@@ -61,6 +61,7 @@ config.web_interface = {
     enabled: true,
     launch_bot_in_startup : true,
     port: 9090,
+    webserver_bind : "127.0.0.1",
     use_wrapper : true,
     wrapper_restart_time : 0.25
 };
