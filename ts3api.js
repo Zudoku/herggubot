@@ -5,6 +5,9 @@ var util = require('util');
 module.exports = {
 	jobQueue: [],
 	queueTimeout: null,
+	errors: {
+		INVALID_CLIENT_ID: 512
+	},
 	initialize: function (config, callback) {
 		this.query_time_limit = config.query_time_limit;
 		this.debug_network = config.debug_network;

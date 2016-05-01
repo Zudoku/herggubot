@@ -19,14 +19,6 @@ module.exports = {
         };
     },
     onChatMessage: function (data) {
-
-        if(data == undefined || data.msg == undefined || data.msg.split(" ") == undefined || data.msg.split(" ").length <= 0){
-            var errormessage = "Could not split message: " + util.inspect(data);
-            dbUtil.logError(errormessage,error_reporter_name);
-
-            return;
-        }
-
         var command = data.msg.split(" ")[0];
         switch (command) {
             case "!afks":
@@ -94,9 +86,11 @@ module.exports = {
         var kickMessage = config.module_admin_tools.inactive_kick_message;
         async.each(clientsToKick, function (client, callback) {
             this.ts3api.kickClientFromServer(client.clid, kickMessage, function (err) {
+                if (err && err.id == this.ts3api.errors.INVALID_CLIENT_ID)
+                    return callback();
                 dbUtil.logAction("Kicked " + util.inspect(client) + " for being inactive (" + kickMessage + ")");
                 callback(err);
-            });
+            }.bind(this));
         }.bind(this), function (err) {
             if (err)
                 return ts3api.sendClientMessage(data.invokerid, "Failed to kick inactive users. Error: " + util.inspect(err));
@@ -145,7 +139,7 @@ module.exports = {
                     self.ts3api.getClientById(client.clid, function (err, detailedClient) {
                         if (err) {
                             //If we get invalid clientId it means the client isn't on the server anymore and we should ignore it
-                            if (err.msg == "invalid clientID")
+                            if (err.id == self.ts3api.errors.INVALID_CLIENT_ID)
                                 return callback();
                             else
                                 return callback(err);

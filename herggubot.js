@@ -125,6 +125,11 @@ module.exports = {
     },
     handleChatMessages: function () {
         this.ts3api.registerListener("textmessage", function(data) {
+            if (data == undefined || data.msg == undefined || data.msg.split(" ") == undefined || data.msg.split(" ").length <= 0){
+                var errormessage = "Could not split message: " + util.inspect(data);
+                dbUtil.logError(errormessage, error_reporter_name);
+                return;
+            }
             this.onMessageListeners.forEach(function (module) {
                 module.onChatMessage(data);
             });
