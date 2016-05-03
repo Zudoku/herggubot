@@ -64,7 +64,8 @@ config.web_interface = {
     port: 9090,
     webserver_bind : "127.0.0.1",
     use_wrapper : true,
-    wrapper_restart_time : 0.25
+    wrapper_restart_time : 0.25,
+    allow_config_upload : true
 };
 
 module.exports = config;
