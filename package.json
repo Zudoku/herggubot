@@ -1,8 +1,8 @@
 {
   "name": "HerGGuBot",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Module based Node.js TeamSpeak 3 bot",
-  "author": "Arttu <arttu.siren@gmail.com>",
+  "author": "Arttu Siren <arttu.siren@gmail.com>",
   "license": "SEE LICENSE IN 'LICENSE' FILE (MIT)",
   "contributors": [
     {
@@ -10,7 +10,7 @@
       "email": "rivenation@gmail.com"
     },
     {
-      "name": "Arttu",
+      "name": "Arttu Siren",
       "email": "arttu.siren@gmail.com"
     }
   ],
