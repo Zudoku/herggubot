@@ -91,7 +91,7 @@ module.exports = {
             this.ts3api.kickClientFromServer(client.clid, kickMessage, function (err) {
                 if (err && err.id == this.ts3api.errors.INVALID_CLIENT_ID)
                     return callback();
-                dbUtil.logAction("Kicked " + util.inspect(client) + " for being inactive (" + kickMessage + ")");
+                dbUtil.logAction("Kicked " + client.client_nickname + " [" + client.client_database_id + "] (" + client.connection_client_ip + ") for being inactive (" + kickMessage + ")");
                 callback(err);
             }.bind(this));
         }.bind(this), function (err) {
