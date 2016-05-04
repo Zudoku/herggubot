@@ -30,6 +30,9 @@ module.exports = {
             case "!clid":
                 this.handleGetClientByIdCommand(data);
                 break;
+            case "!inactive_channels":
+                this.handleGetInactiveChannelsCommand(data);
+                break;
             case "!help":
                 this.handleHelpCommand(data);
                 break;
@@ -121,11 +124,38 @@ module.exports = {
             self.ts3api.sendClientMessage(data.invokerid, createOutputString(clients));
         });
     },
+    handleGetInactiveChannelsCommand: function (data) {
+        function createOutputString(channels) {
+            var outputString = ["\n\n[B]Inactive channels:[/B]\n", "Days\t|\tChannel name", "-------------------------------------"];
+            channels.forEach(function (channel) {
+                var daysInactive = Math.floor(channel.seconds_empty / 24 / 60 / 60);
+                var rowString = daysInactive + "\t[B]" + channel.channel_name + "[/B]";
+                outputString.push(rowString);
+            });
+            return outputString.join("\n");
+        }
+        var parts = data.msg.split(" ").slice(1);
+        var minInactiveMs = 60 * 60 * 24 * 7 * 1000; // 7 days
+        if (parts.length == 1) {
+            minInactiveMs = 60 * 60 * 24 * 1000 * parseInt(parts[0]); // Parse day amount from command
+        } else if (parts.length > 1) {
+            this.ts3api.sendClientMessage(data.invokerid, "Wrong syntax, usage: !inactive_channels [min_days_inactive]");
+            return;
+        }
+        this.ts3api.sendClientMessage(data.invokerid, "Finding inactive channels.");
+        this.getInactiveChannels(minInactiveMs, function (err, inactiveChannels) {
+            if (err) return this.ts3api.sendClientMessage(data.invokerid, "Error getting inactive channels. Error: " + util.inspect(err));
+            console.log("Found " + inactiveChannels.length + " channels");
+            var output = createOutputString(inactiveChannels);
+            this.ts3api.sendClientMessage(data.invokerid, output);
+        }.bind(this));
+    },
     handleHelpCommand: function (data) {
         var output = [
             "\n\nAvailable commands for module: [B]admin-tools[/B]:\n",
             "[B]!afks[/B] - Returns a list of inactive clients on the server.",
             "[B]!afks_kick[/B] - Kicks all of the inactive clients. Requires !afks to be ran before it, you can whitelist people with the --ignore=[clids] parameter. Eg. --ignore=5,4",
+            "[B]!inactive_channels[/B] - Returns all the channels that have been inactive for X amount of days. Eg. !inactive_channels 7",
             "[B]!clid[/B] - Returns the client links of given comma seperated client id list."
         ];
         this.ts3api.sendClientMessage(data.invokerid, output.join("\n"));
@@ -214,6 +244,26 @@ module.exports = {
                 if (err) return callback(err);
                 var flattenedClients = [].concat.apply([], suitableClients);
                 callback(null, flattenedClients);
+            });
+        });
+    },
+    getInactiveChannels: function (minInactiveMs, callback) {
+        var self = this;
+        self.ts3api.getChannelList(function (err, list) {
+            if (err) return callback(err);
+            async.map(list, function (channel, callback) {
+                self.ts3api.getChannelById(channel.cid, function (err, fullChannel) {
+                    callback(err, fullChannel);
+                });
+            }, function (err, channels) {
+                if (err) return callback(err);
+                var inactiveChannels = channels.filter(function (channel) {
+                    return channel.seconds_empty * 1000 >= minInactiveMs;
+                });
+                inactiveChannels.sort(function (a, b) {
+                    return b.seconds_empty - a.seconds_empty;
+                });
+                callback(null, inactiveChannels);
             });
         });
     },
