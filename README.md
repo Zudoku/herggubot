@@ -353,3 +353,17 @@ THE SOFTWARE.
 [node-teamspeak](https://www.npmjs.com/package/node-teamspeak)
 
 [Serverquery pdf](http://media.teamspeak.com/ts3_literature/TeamSpeak%203%20Server%20Query%20Manual.pdf)
+
+
+
+
+
+![promo.png](promo1.png)
+
+![promo.png](promo2.png)
+
+![promo.png](promo3.png)
+
+![promo.png](promo4.png)
+
+![promo.png](promo5.png)
